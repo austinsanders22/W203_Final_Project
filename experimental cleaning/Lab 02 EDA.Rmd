@@ -15,6 +15,14 @@ library(magrittr)
 library(ggplot2)
 ```
 
+## Steps:
+>   1. Load The Data \
+>   2. Get Necessary Columns \
+>   3. Filter out Low-Budget, Low-Revenue, and Duplicate Titles - 285-295 rows \
+>   4. Examine Variables (apply transformations) - log-transformation makes them look normal \
+>   5. Compare plot of World Revenue to Budget (color by MPAA rating) - looks like there is a linear trend\
+>   6. Check PG-only films - it appears that G and PG are in the same "PG" bucket \
+
 
 ```{r - CONSTANTS, warning = FALSE, include=FALSE}
 # Constants to manipulate
@@ -23,7 +31,7 @@ MIN_BUDGET = 10000
 REMOVE_NA_RATING = FALSE
 ```
 
-## Load the Data
+## 1. Load the Data
 
 ```{r - LOAD DATA, warning=FALSE}
 # Read the dataset
@@ -38,7 +46,7 @@ Explanatory Variables: \
 - `budget`    - Might require a log-transform \
 - `MPAA`    - Filter to indicator variables \
 
-## Clean The Data
+## 2. Get Necessary Columns
 
 ```{r - GET NECESSARY COLUMNS, warning=FALSE}
 convert_to_numeric <- function(df, index){
@@ -78,15 +86,16 @@ df_raw$budget = apply(df_raw, 1, convert_to_numeric, 4)
 head(df_raw)
 ```
 
+## 3. Filter out Low-Budget, Low-Revenue, and Duplicate Titles
 
 ```{r - DATA CLEANING, warning=FALSE}
-# Remove world revenue under MIN_REVENUE
+# Remove world_revenue under MIN_REVENUE
 df_raw <- subset(df_raw, df_raw$world_revenue >= MIN_REVENUE & !is.na(df_raw$world_revenue))
 
-# Remove 0 budget under MIN_BUDGET
+# Remove budget under MIN_BUDGET
 df_raw <- subset(df_raw, df_raw$budget >= MIN_BUDGET & !is.na(df_raw$budget))
 
-# Remove duplicate N/A ratings if desired
+# Remove N/A ratings if desired
 if (REMOVE_NA_RATING) {
   df_raw <- subset(df_raw, df_raw$MPAA != "N/A")
 }
@@ -138,6 +147,8 @@ for(i in 1:nrow(df_raw)) {       # for-loop over rows
 # Print number of rows with unique titles
 length(df[["title"]])
 ```
+
+## 4. Examine Variables (apply transformations)
 
 ```{r - CHECK MAIN NUMERIC VARIABLES, warning=FALSE}
 # CHECK MAIN NUMERIC VARIABLES
@@ -202,6 +213,8 @@ grid.arrange(budget_histogram, log_budget_histogram,
 
 ```
 
+## 5. Compare plot of World Revenue to Budget (color by MPAA rating)
+
 ````{r COMPARE EXPLANATORY VARIABLES, warning = FALSE}
 # COMPARE EXPLANATORY VARIABLES
 level_level_plot <- df %>%
@@ -224,6 +237,7 @@ grid.arrange(level_level_plot, level_log_plot,
              log_level_plot, log_log_plot,
              nrow = 2, ncol = 2)
 ````
+## 6. Check PG-only films
 
 ```{r CHECK PG-RATED FILMS, warning = FALSE}
 # CHECK PG-RATED FILMS (it appears that G and PG are in the same "PG" bucket)
