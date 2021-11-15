@@ -287,7 +287,7 @@ log_level_plot <- df %>%
   geom_point()
 
 log_log_plot <- df %>%
-  ggplot(aes(x=log(budget), y=log(score), color=rating)) +
+  ggplot(aes(x=log(budget), y=log(score), color=genre)) +
   geom_point()
 
 #grid.arrange(level_level_plot, level_log_plot,
