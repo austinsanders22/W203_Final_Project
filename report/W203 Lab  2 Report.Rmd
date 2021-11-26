@@ -7,17 +7,39 @@ output: pdf_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
+MIN_REVENUE = 10000000
+MIN_BUDGET = 10000
+
+library(gridExtra)
+library(tidyverse)
+library(magrittr)
+library(ggplot2)
+library(hash)
+
+data <- read.csv(file = "movies.csv")
 ```
 
 ## 1. Introduction
 
+### 1a. Research Question
+
 |   Acme Studios has spent a $50,000,000.00 budget on a superhero movie, and the director insists that it includes a scene where the main villain goes on an expletive-laden tirade. We know that including this scene will mean that our movie is rated R, and cutting the scene will result in the movie being rated PG-13. The director is extremely upset that we want to cut the scene and says we're ruining the film's artistic integrity by trying to make editorial changes after the director's cut. So upset that he went directly to the studio head to complain. Now Acme Studios’ executive team has to decide: do they modify the movie for a more family-friendly rating, or do they respect the director's wishes and release it as-is? As data scientists, we would have difficulty quantifying artistic integrity or the value of the relationship between the studio and the director. Still, we feel strongly that we can show the relationship between worldwide revenue for a PG-13 vs. R ratings (holding all other variables constant). The studio head wants to know: How much more money do they expect to make by defying the director's wishes and cutting the movie to make it PG-13?
+
+### 1c. Causal Theory
+
+
+![](causal_theory.png){width=60%}
+
+Our research question seeks to measure the impact of the MPAA rating (more specifically, PG-13 versus R) on the gross box office revenue. A movie typically receives an R rating by the MPAA for some combination of violent content, adult content, explicit language, and drug use. In addition to these factors contributing to the MPAA rating, they also contribute to the quality of the movie. We expect to show that both MPAA rating and movie quality impact the gross revenue of the film. By adjusting the movie's content to secure the desired rating, we may also affect the quality of the movie. Therefore, we want to explore models that include a proxy for movie quality to attempt to minimize omitted variable bias.
+
 
 ## 2. A description of the Data and Research Design
 
+
 After you have presented the introduction and the concepts that are under investigation, what data are you going to use to answer the questions? What type of research design are you using? What type of models are you going to estimate, and what goals do you have for these models?  
 
-## 2a. A Model Building Process
+### 2a. A Model Building Process
 
 You will next build a set of models to investigate your research question, documenting your decisions. Here are some things to keep in mind during your model building process:
 
@@ -35,6 +57,40 @@ The first model you include should include *only the key variables* you want to 
 Additional models should each be defensible, and should continue to tell the story of how product features contribute to product success. This might mean including additional right-hand side features to remove omitted variable bias identified by your casual theory; or, instead, it might mean estimating a model that examines a related concept of success, or a model that investigates a heterogeneous effect. These models, and your modeling process should be defensible, incremental, and clearly explained at all points.
 
 Your goal is to choose models that encircle the space of reasonable modeling choices, and to give an overall understanding of how these choices impact results.
+
+```{r Data Cleaning}
+
+# Retrieve only the needed columns
+
+df = select(data, c('gross', 'budget', 'score', 'genre', 'runtime', 'rating'))
+
+# Remove world_revenue under MIN_REVENUE
+df <- subset(df, df$gross >= MIN_REVENUE & !is.na(df$gross))
+
+# Remove budget under MIN_BUDGET
+df <- subset(df, df$budget >= MIN_BUDGET & !is.na(df$budget))
+
+# Keep G, PG, PG-13, R, X
+df <- subset(df,
+             df$rating == "G"
+             | df$rating == "PG"
+             | df$rating == "PG-13"
+             | df$rating == "R"
+             | df$rating == "X")
+
+# Apply Indicator variable for PG-13 (G and PG is the base case)
+df$PG_13 = factor(ifelse(df$rating == "PG-13" , 1, 0))
+
+# Apply Indicator variable for R and X (G and PG is the base case)
+df$R_OVER = factor(ifelse(df$rating == "R" | df$rating == "X", 1, 0))
+
+
+df %>%
+  ggplot(aes(x=log(budget), y=log(gross), color=rating)) +
+  geom_point()
+
+```
+
 
 ## 4. A Results Section
 
