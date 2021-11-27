@@ -1,20 +1,25 @@
 ---
 title: "Keeping it PG-13"
 author: "Steve Hewitt, Martin Lim, Fidelia Nawar, & Austin Sanders"
-date: "11/24/2021"
+date: "11/27/2021"
 output: pdf_document
 ---
 
-```{r setup, include=FALSE}
+```{r - Setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
-MIN_REVENUE = 10000000
-MIN_BUDGET = 10000
+MIN_REVENUE = 1
+MIN_BUDGET = 1
+INCLUDE_X_FILMS = FALSE
 
 library(gridExtra)
 library(tidyverse)
 library(magrittr)
 library(ggplot2)
+library(hash)
+library(lmtest)
+library(sandwich)
+library(stargazer)
 library(hash)
 
 data <- read.csv(file = "movies.csv")
@@ -22,22 +27,230 @@ data <- read.csv(file = "movies.csv")
 
 ## 1. Introduction
 
-### 1a. Research Question
+### 1a. Context
 
-|   Acme Studios has spent a $50,000,000.00 budget on a superhero movie, and the director insists that it includes a scene where the main villain goes on an expletive-laden tirade. We know that including this scene will mean that our movie is rated R, and cutting the scene will result in the movie being rated PG-13. The director is extremely upset that we want to cut the scene and says we're ruining the film's artistic integrity by trying to make editorial changes after the director's cut. So upset that he went directly to the studio head to complain. Now Acme Studios’ executive team has to decide: do they modify the movie for a more family-friendly rating, or do they respect the director's wishes and release it as-is? As data scientists, we would have difficulty quantifying artistic integrity or the value of the relationship between the studio and the director. Still, we feel strongly that we can show the relationship between worldwide revenue for a PG-13 vs. R ratings (holding all other variables constant). The studio head wants to know: How much more money do they expect to make by defying the director's wishes and cutting the movie to make it PG-13?
+|   Acme Studios has spent a $50,000,000.00 budget on a superhero movie, and the director insists that the movie should include a scene where the main villain goes on an expletive-laden tirade. We know that including this scene will mean that the movie will be rated R, and cutting the scene will result in the movie being rated PG-13. The director is extremely upset that we want to cut the scene and says we're ruining the film's artistic integrity by trying to make editorial changes after the director's cut. So upset that he went directly to the studio head to complain. Now Acme Studios’ executive team has to decide: do they modify the movie for a more family-friendly rating, or do they respect the director's wishes and release it as-is? As data scientists, we would have difficulty quantifying artistic integrity or the value of the relationship between the studio and the director. Still, we feel strongly that we can show the relationship between worldwide revenue for a PG-13 vs. R ratings (holding all other variables constant). The studio head wants to know: How much more money do they expect to make by defying the director's wishes and cutting the movie to make it PG-13?
+
+### 1b. Research Question
+
+|   *Holding other factors constant, how much more money should a movie studio expect to make on a film that gets a PG-13 rating instead of an R rating from the MPAA?*
+
+|   Our research question intends to measure the impact *MPAA Rating* and *Movie Quality* on the *Gross Revenue* that it will generate. Given other available, quantifiable factors like the *Budget*, *Genre*, and *Runtime*, this study also intends to investigate if they affect the *MPAA Rating* and/or *Movie Quality* which in-turn affect the *Gross Revenue*. 
 
 ### 1c. Causal Theory
 
-
 ![](causal_theory.png){width=60%}
 
-Our research question seeks to measure the impact of the MPAA rating (more specifically, PG-13 versus R) on the gross box office revenue. A movie typically receives an R rating by the MPAA for some combination of violent content, adult content, explicit language, and drug use. In addition to these factors contributing to the MPAA rating, they also contribute to the quality of the movie. We expect to show that both MPAA rating and movie quality impact the gross revenue of the film. By adjusting the movie's content to secure the desired rating, we may also affect the quality of the movie. Therefore, we want to explore models that include a proxy for movie quality to attempt to minimize omitted variable bias.
+
+|   Our research question seeks to measure the impact of the *MPAA Rating* (more specifically, PG-13 versus R) on the *Gross box office revenue*. A movie typically receives an R rating by the MPAA for some combination of violent content, adult content, explicit language, and drug use. In addition to these factors contributing to the MPAA rating, they also contribute to the quality of the movie. We expect to show that both MPAA rating and movie quality impact the gross revenue of the film. By adjusting the movie's content to secure the desired rating, we may also affect the quality of the movie. Therefore, this study will explore models that include a proxy for movie quality to attempt to minimize omitted variable bias.
 
 
 ## 2. A description of the Data and Research Design
 
+After you have presented the introduction and the concepts that are under investigation, what data are you going to use to answer the questions? What type of research design are you using? What type of models are you going to estimate, and what goals do you have for these models?
 
-After you have presented the introduction and the concepts that are under investigation, what data are you going to use to answer the questions? What type of research design are you using? What type of models are you going to estimate, and what goals do you have for these models?  
+### Data Source
+
+|   The data used for this study is a movie dataset from Kaggle (https://www.kaggle.com/danielgrijalvas/movies). It contains 7512 unique movie titles ranging from the year 1986 to 2020. According to the description of the creator of the dataset, the data was scraped from IMDb.com so the extent of the movie title coverage can go as far as the available information posted on the IMBd website. Below are the important columns that were considered for this study:
+
+* Outcome Variable
+    + `gross`   : Revenue of the movie in USD
+
+\
+
+* Explanatory Variables
+    + `score`   : IMDb user rating
+    + `rating`  : MPAA rating of the movie (R, PG, etc.)
+    + `runtime` : Length of movie in minutes
+    + `budget`  : Budget of the movie in USD
+    + `votes`   : Number of user votes on the IMBd website
+    
+### Research Design
+
+|   Using the data and variables above, this study measured the impact *MPAA Rating* and *Movie Quality* on the *Gross Revenue* that a movie will generate. Causal models were generated using the logic from the causal theory in 1c. `gross` is the main quantified success variable. According to the causal theory, two main explanatory quantities were included in the model. `rating` was used to quantify the MPAA rating of the film while `score` is the main quantified measurement of quality. `buzdget` and `runtime` both affect the the movie quality, but not the `rating` so they were considered as proxies for quality.
+
+|   The outcome of interest is `gross`, the revenue of the movie in USD. This is the main outcome variable of all the causal models and is quantified in numeric form as is.
+
+|   In order to properly quantify `rating` in the model, indicator variables were used. The data was divided into three (3) categories: G and PG, PG-13, and R and above. Since movies that are rated G and PG cater to similar audiences, they were classified as the base case and were given a value of 0 for all rating indicator variables. All movies rated PG-13 were given a separate indicator variable (`PG13`) while all movies rated R and more extreme were classified for a different indicator variable (`R`).
+
+|   Measuring movie quality is primarily measured by the `score` variable. Variables like `budget` and `runtime` also have an effect on quality so they were considered as possible proxies for quality in the causal models.
+
+|   In order to remove duplicate movie titles, the data point with the larger budget was retained. If both the budgets and titles were equal, the data point with the larger revenue was retained.
+
+|   Based on our EDA, it seems likely that a log transformation of both gross revenue and budget may be helpful to produce a better-fitting linear model. We will divide our dataset into two parts: 30% for model building and 70% for model validation. We will use the first set portion of the dataset to produce multiple linear models and evaluate them using coefficient tests in R. We will then conduct a comparison using stargazer to determine which model best aligns with our data and our causal theory. Armed with this chosen model, we will evaluate how well its predictions stand up when applied to the second set of data that we saved for validation. Finally, we will apply our model to the specific case outlined in the overview section above to predict the revenue for both a PG-13 and R MPAA rating case.
+
+```{r Data Cleaning}
+
+# Retrieve only the needed columns
+df_raw = select(data, c('title', 'gross', 'budget', 'score', 'runtime', 'rating', 'year', 'votes'))
+
+# Remove world_revenue under MIN_REVENUE
+df_raw <- subset(df_raw, df_raw$gross >= MIN_REVENUE & !is.na(df_raw$gross))
+
+# Remove budget under MIN_BUDGET
+df_raw <- subset(df_raw, df_raw$budget >= MIN_BUDGET & !is.na(df_raw$budget))
+
+# Keep G, PG, PG-13, R, X
+if (INCLUDE_X_FILMS) {
+  df_raw <- subset(df_raw,
+               df_raw$rating == "G"
+             | df_raw$rating == "PG"
+             | df_raw$rating == "PG-13"
+             | df_raw$rating == "R"
+             | df_raw$rating == "X")
+} else {
+  df_raw <- subset(df_raw,
+               df_raw$rating == "G"
+             | df_raw$rating == "PG"
+             | df_raw$rating == "PG-13"
+             | df_raw$rating == "R")
+}
+
+# Remove Duplicate Movie Titles
+# Hash object for title : budget
+h <- hash() 
+
+# Clean dataframe
+df = data.frame()
+
+for(i in 1:nrow(df_raw)) {       # for-loop over rows
+  title_key = df_raw[i,'title']
+  
+  if (TRUE == all(has.key( title_key, h ))) {
+    # Title is already recorded
+
+    # Search for existing row in clean dataframe with the same title
+    for (k in 1:nrow(df)) {
+      
+      if (title_key == df[k,'title']) {
+        # Replace row if the budget of the new value is higher than that of the
+        # budget of the recorded title
+        if (df_raw[i, 'budget'] > df[k, 'budget']) {
+          
+          # Delete found row in cleaned dataframe
+          df = df[-c(k),]
+          
+          # Bind raw dataframe row to clean dataframe
+          df <- rbind(df, df_raw[i,])
+          
+          # Revise title_key and budget to hash
+          h[[title_key]] = df_raw[i,'budget']
+        } else if (df_raw[i, 'budget'] > df[k, 'budget']
+                   & df_raw[i, 'gross'] > df[k, 'gross']) {
+          # Delete found row in cleaned dataframe
+          df = df[-c(k),]
+          
+          # Bind raw dataframe row to clean dataframe
+          df <- rbind(df, df_raw[i,])
+          
+          # Revise title_key and budget to hash
+          h[[title_key]] = df_raw[i,'budget']
+        }
+        break
+      }
+      
+    }
+    
+  } else {
+    # Add title_key and budget to hash
+    h[[title_key]] = df_raw[i,'budget']
+    
+    # Bind raw dataframe row to clean dataframe
+    df <- rbind(df, df_raw[i,])
+  }
+}
+
+
+# Apply Indicator variable for PG-13 (G and PG is the base case)
+df$PG13 = factor(ifelse(df$rating == "PG-13" , 1, 0))
+
+# Apply Indicator variable for R and X (G and PG is the base case)
+df$R = factor(ifelse(df$rating == "R" | df$rating == "X", 1, 0))
+
+
+nrow(df)
+
+```
+|   There are 5264 unique titles considered for this study.
+
+```{r - EDA: Check main financial variables}
+
+world_revenue_histogram <- df %>%
+  ggplot(aes(gross)) +
+  geom_histogram(bins=30)
+
+log_world_revenue_histogram <- df %>%
+  ggplot(aes(log(gross))) +
+  geom_histogram(bins=30)
+
+budget_histogram <- df %>%
+  ggplot(aes(budget)) +
+  geom_histogram(bins=30)
+
+log_budget_histogram <- df %>%
+  ggplot(aes(log(budget))) +
+  geom_histogram(bins=30)
+
+grid.arrange(world_revenue_histogram, log_world_revenue_histogram,
+             budget_histogram, log_budget_histogram,
+             nrow = 2, ncol = 2, top = "Financial Variable distributions")
+
+```
+
+
+```{r - EDA: Check other numeric explanatory variables, warning=FALSE}
+# CHECK NUMERIC EXPLANATORY VARIABLES
+score_histogram <- df %>%
+  ggplot(aes(score)) +
+  geom_histogram(bins=30)
+
+log_score_histogram <- df %>%
+  ggplot(aes(log(score))) +
+  geom_histogram(bins=30)
+
+year_histogram <- df %>%
+  ggplot(aes(year)) +
+  geom_histogram(bins=10)
+
+votes_histogram <- df %>%
+  ggplot(aes(votes)) +
+  geom_histogram(bins=30)
+
+log_votes_histogram <- df %>%
+  ggplot(aes(log(votes))) +
+  geom_histogram(bins=30)
+
+runtime_histogram <- df %>%
+  ggplot(aes(runtime)) +
+  geom_histogram(bins=30)
+
+grid.arrange(score_histogram, log_score_histogram,  
+             votes_histogram, log_votes_histogram,
+             runtime_histogram, year_histogram,
+             nrow = 3, ncol = 2, top = "Numeric Variable Distributions")
+```
+
+```{r - EDA: Distribution of Ratings}
+
+df$rating_bin = factor(ifelse(df$rating == "R", "R", ifelse(df$rating == "PG-13", "PG-13", "G/PG")))
+
+df %>%
+  ggplot(aes(x=rating_bin, fill=rating_bin)) +
+  geom_bar() +
+  theme(legend.position = "none") +
+  ggtitle("Distribution of Ratings") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r - EDA}
+
+# Correlation between log(gross) and year - weak correlation at best
+cor(log(df$gross), df$year, method = "pearson")
+cor(log(df$gross), df$year, method = "spearman")
+cor(log(df$gross), df$year, method = "kendall")
+```
+
+|   There doesn't seem to be a strong correlation between the year and revenue of the movie.
 
 ### 2a. A Model Building Process
 
@@ -58,36 +271,29 @@ Additional models should each be defensible, and should continue to tell the sto
 
 Your goal is to choose models that encircle the space of reasonable modeling choices, and to give an overall understanding of how these choices impact results.
 
-```{r Data Cleaning}
-
-# Retrieve only the needed columns
-
-df = select(data, c('gross', 'budget', 'score', 'genre', 'runtime', 'rating'))
-
-# Remove world_revenue under MIN_REVENUE
-df <- subset(df, df$gross >= MIN_REVENUE & !is.na(df$gross))
-
-# Remove budget under MIN_BUDGET
-df <- subset(df, df$budget >= MIN_BUDGET & !is.na(df$budget))
-
-# Keep G, PG, PG-13, R, X
-df <- subset(df,
-             df$rating == "G"
-             | df$rating == "PG"
-             | df$rating == "PG-13"
-             | df$rating == "R"
-             | df$rating == "X")
-
-# Apply Indicator variable for PG-13 (G and PG is the base case)
-df$PG_13 = factor(ifelse(df$rating == "PG-13" , 1, 0))
-
-# Apply Indicator variable for R and X (G and PG is the base case)
-df$R_OVER = factor(ifelse(df$rating == "R" | df$rating == "X", 1, 0))
 
 
-df %>%
-  ggplot(aes(x=log(budget), y=log(gross), color=rating)) +
-  geom_point()
+```{r - Create the models}
+
+#Model 1: Rating Only
+model_1 = lm(log(gross) ~ PG13 + R, data = df)
+
+#Model 2: Rating and Quality
+model_2 = lm(log(gross) ~ PG13 + R + score, data = df)
+
+#Model 3: Rating and Quality with interaction terms
+
+#Model 4: Rating and Quality with budget
+
+#Model 5: Rating and Quality with budget and interaction terms
+
+
+stargazer(
+  model_1, 
+  model_2,
+  type = 'text', header = FALSE, 
+  star.cutoffs = c(0.05, 0.01, 0.001) # the default isn't in line with w203
+)
 
 ```
 
