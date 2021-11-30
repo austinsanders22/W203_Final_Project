@@ -1,7 +1,7 @@
 ---
 title: "Keeping it PG-13"
 author: "Steve Hewitt, Martin Lim, Fidelia Nawar, & Austin Sanders"
-date: "11/27/2021"
+date: "11/30/2021"
 output: pdf_document
 ---
 
@@ -22,8 +22,11 @@ library(sandwich)
 library(stargazer)
 library(hash)
 library(caTools)
+library(GGally)
 
-data <- read.csv(file = "../data/movies.csv")
+# Put seed here
+
+data <- read.csv(file = "data/movies.csv")
 ```
 
 ## 1. Introduction
@@ -46,19 +49,17 @@ data <- read.csv(file = "../data/movies.csv")
 |   Our research question seeks to measure the impact of the *MPAA Rating* (more specifically, PG-13 versus R) on the *Gross box office revenue*. A movie typically receives an R rating by the MPAA for some combination of violent content, adult content, explicit language, and drug use. In addition to these factors contributing to the MPAA rating, they also contribute to the quality of the movie. We expect to show that both MPAA rating and movie quality impact the gross revenue of the film. By adjusting the movie's content to secure the desired rating, we may also affect the quality of the movie. Therefore, this study will explore models that include a proxy for movie quality to attempt to minimize omitted variable bias.
 
 
-## 2. A description of the Data and Research Design
+## 2. Research Design and Data
 
 After you have presented the introduction and the concepts that are under investigation, what data are you going to use to answer the questions? What type of research design are you using? What type of models are you going to estimate, and what goals do you have for these models?
 
-### Data Source
+### 2a. Data Source
 
 |   The data used for this study is a movie dataset from Kaggle (https://www.kaggle.com/danielgrijalvas/movies). It contains 7512 unique movie titles ranging from the year 1986 to 2020. According to the description of the creator of the dataset, the data was scraped from IMDb.com so the extent of the movie title coverage can go as far as the available information posted on the IMBd website. Below are the important columns that were considered for this study:
 
 * Outcome Variable
     + `gross`   : Revenue of the movie in USD
-
 \
-
 * Explanatory Variables
     + `score`   : IMDb user rating
     + `rating`  : MPAA rating of the movie (R, PG, etc.)
@@ -66,7 +67,7 @@ After you have presented the introduction and the concepts that are under invest
     + `budget`  : Budget of the movie in USD
     + `votes`   : Number of user votes on the IMBd website
     
-### Research Design
+### 2b. Research Design
 
 |   Using the data and variables above, this study measured the impact *MPAA Rating* and *Movie Quality* on the *Gross Revenue* that a movie will generate. Causal models were generated using the logic from the causal theory in 1c. `gross` is the main quantified success variable. According to the causal theory, two main explanatory quantities were included in the model. `rating` was used to quantify the MPAA rating of the film while `score` is the main quantified measurement of quality. `buzdget` and `runtime` both affect the the movie quality, but not the `rating` so they were considered as proxies for quality.
 
@@ -80,15 +81,17 @@ After you have presented the introduction and the concepts that are under invest
 
 |   Based on our EDA, it seems likely that a log transformation of both gross revenue and budget may be helpful to produce a better-fitting linear model. We will divide our dataset into two parts: 30% for model building and 70% for model validation. We will use the first set portion of the dataset to produce multiple linear models and evaluate them using coefficient tests in R. We will then conduct a comparison using stargazer to determine which model best aligns with our data and our causal theory. Armed with this chosen model, we will evaluate how well its predictions stand up when applied to the second set of data that we saved for validation. Finally, we will apply our model to the specific case outlined in the overview section above to predict the revenue for both a PG-13 and R MPAA rating case.
 
+### 2c. Data Cleaning
+
 ```{r Data Cleaning}
 
 # Retrieve only the needed columns
 df_raw = select(data, c('title', 'gross', 'budget', 'score', 'runtime', 'rating', 'year', 'votes'))
 
-# Remove world_revenue under MIN_REVENUE
+# Remove data points with world_revenue under MIN_REVENUE
 df_raw <- subset(df_raw, df_raw$gross >= MIN_REVENUE & !is.na(df_raw$gross))
 
-# Remove budget under MIN_BUDGET
+# Remove data points with budget under MIN_BUDGET
 df_raw <- subset(df_raw, df_raw$budget >= MIN_BUDGET & !is.na(df_raw$budget))
 
 # Keep G, PG, PG-13, R, X
@@ -161,17 +164,20 @@ for(i in 1:nrow(df_raw)) {       # for-loop over rows
   }
 }
 
-
 # Apply Indicator variable for PG-13 (G and PG is the base case)
 df$PG13 = factor(ifelse(df$rating == "PG-13" , 1, 0))
 
 # Apply Indicator variable for R and X (G and PG is the base case)
 df$R = factor(ifelse(df$rating == "R" | df$rating == "X", 1, 0))
-
-
-nrow(df)
-
 ```
+
+### 2d. Exploratory Data Analysis
+
+```{r}
+nrow(df)
+```
+
+
 |   There are 5264 unique titles considered for this study.
 
 ```{r - EDA: Check main financial variables}
@@ -199,14 +205,18 @@ grid.arrange(world_revenue_histogram, log_world_revenue_histogram,
 ```
 
 
-```{r - EDA: Check other numeric explanatory variables, warning=FALSE}
-# CHECK NUMERIC EXPLANATORY VARIABLES
+```{r - EDA: Check other explanatory variables, warning=FALSE}
+# CHECK OTHER EXPLANATORY VARIABLES
+
+df$ratings_distribution = factor(ifelse(df$rating == "R", "R", ifelse(df$rating == "PG-13", "PG-13", "G/PG")))
+
+ratings_distribution_histogram <- df %>%
+  ggplot(aes(x=ratings_distribution, fill=ratings_distribution)) +
+  geom_bar() +
+  theme(legend.position = "none")
+
 score_histogram <- df %>%
   ggplot(aes(score)) +
-  geom_histogram(bins=30)
-
-log_score_histogram <- df %>%
-  ggplot(aes(log(score))) +
   geom_histogram(bins=30)
 
 year_histogram <- df %>%
@@ -225,25 +235,13 @@ runtime_histogram <- df %>%
   ggplot(aes(runtime)) +
   geom_histogram(bins=30)
 
-grid.arrange(score_histogram, log_score_histogram,  
+grid.arrange(ratings_distribution_histogram, score_histogram,  
              votes_histogram, log_votes_histogram,
              runtime_histogram, year_histogram,
              nrow = 3, ncol = 2, top = "Numeric Variable Distributions")
 ```
 
-```{r - EDA: Distribution of Ratings}
-
-df$rating_bin = factor(ifelse(df$rating == "R", "R", ifelse(df$rating == "PG-13", "PG-13", "G/PG")))
-
-df %>%
-  ggplot(aes(x=rating_bin, fill=rating_bin)) +
-  geom_bar() +
-  theme(legend.position = "none") +
-  ggtitle("Distribution of Ratings") +
-  theme(plot.title = element_text(hjust = 0.5))
-```
-
-```{r - EDA}
+```{r - Check for correlation between gross and year}
 
 # Correlation between log(gross) and year - weak correlation at best
 cor(log(df$gross), df$year, method = "pearson")
@@ -251,9 +249,30 @@ cor(log(df$gross), df$year, method = "spearman")
 cor(log(df$gross), df$year, method = "kendall")
 ```
 
-|   There doesn't seem to be a strong correlation between the year and revenue of the movie.
+|   There doesn't seem to be a strong correlation between the year and revenue of the movie. So it might not be necessary to adjust the `gross` data for inflation.
 
-### 2a. A Model Building Process
+```{r - Evaluate numeric variables for perfect collinearity, message = FALSE, warning = FALSE, error = FALSE}
+
+df_collinearity = select(df, c('gross', 'budget', 'score', 'runtime', 'year', 'votes'))
+
+# Log-Transform `gross`, `budget`, and `votes`
+df_collinearity$log_gross = log(df_collinearity$gross)
+df_collinearity$log_budget = log(df_collinearity$budget)
+df_collinearity$log_votes = log(df_collinearity$votes)
+
+# Remove `gross`, `budget`, and `votes`
+df_collinearity = select(df_collinearity, c('log_gross', 'log_budget', 'score', 'runtime', 'year', 'log_votes'))
+
+# check for collinearity
+ggpairs(df_collinearity)
+```
+
+|   According to the correlation plots above, the explanatory variables do not seem to have any strong correlation to each other. The log-transformed data for `budget` and `votes` may have decent correlation with the log-transformed data for `gross` (the outcome variable), but this should not produce any problems for finding an BLP for this data.
+
+
+## 3. Analysis
+
+### 3a. A Model Building Process
 
 You will next build a set of models to investigate your research question, documenting your decisions. Here are some things to keep in mind during your model building process:
 
