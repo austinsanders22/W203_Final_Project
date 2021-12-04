@@ -23,8 +23,6 @@ library(hash)
 library(caTools)
 library(GGally)
 
-# Put seed here
-
 data <- read.csv(file = "movies.csv")
 ```
 
@@ -32,21 +30,20 @@ data <- read.csv(file = "movies.csv")
 
 ### 1a. Context
 
-|   Acme Studios has spent a $50,000,000.00 budget on a superhero movie, and the director insists that the movie should include a scene where the main villain goes on an expletive-laden tirade. We know that including this scene will mean that the movie will be rated R, and cutting the scene will result in the movie being rated PG-13. The director is extremely upset that we want to cut the scene and says we're ruining the film's artistic integrity by trying to make editorial changes after the director's cut. So upset that he went directly to the studio head to complain. Now Acme Studios’ executive team has to decide: do they modify the movie for a more family-friendly rating, or do they respect the director's wishes and release it as-is? As data scientists, we would have difficulty quantifying artistic integrity or the value of the relationship between the studio and the director. Still, we feel strongly that we can show the relationship between worldwide revenue for a PG-13 vs. R ratings (holding all other variables constant). The studio head wants to know: How much more money do they expect to make by defying the director's wishes and cutting the movie to make it PG-13?
+> Acme Studios has spent a $50,000,000.00 budget on a superhero movie, and the director insists that the movie should include a scene where the main villain goes on an expletive-laden tirade. We know that including this scene will mean that the movie will be rated R, and cutting the scene will result in the movie being rated PG-13. The director is extremely upset that we want to cut the scene and says we're ruining the film's artistic integrity by trying to make editorial changes after the director's cut. So upset that he went directly to the studio head to complain. Now Acme Studios’ executive team has to decide: do they modify the movie for a more family-friendly rating, or do they respect the director's wishes and release it as-is? As data scientists, we would have difficulty quantifying artistic integrity or the value of the relationship between the studio and the director. Still, we feel strongly that we can show the relationship between worldwide revenue for a PG-13 vs. R ratings (holding all other variables constant). The studio head wants to know: How much more money do they expect to make by defying the director's wishes and cutting the movie to make it PG-13?
 
 ### 1b. Research Question
 
-|   *Holding other factors constant, how much more money should a movie studio expect to make on a film that gets a PG-13 rating instead of an R rating from the MPAA?*
+>   *Holding other factors constant, how much more money should a movie studio expect to make on a film that gets a PG-13 rating instead of an R rating from the MPAA?*
 
-|   Our research question intends to measure the impact *MPAA Rating* and *Movie Quality* on the *Gross Revenue* that it will generate. Given other available, quantifiable factors like the *Budget*, *Genre*, and *Runtime*, this study also intends to investigate if they affect the *MPAA Rating* and/or *Movie Quality* which in-turn affect the *Gross Revenue*. 
+>   Our research question intends to measure the impact *MPAA Rating* and *Movie Quality* on the *Gross Revenue* that it will generate. Given other available, quantifiable factors like the *Budget*, *Genre*, and *Runtime*, this study also intends to investigate if they affect the *MPAA Rating* and/or *Movie Quality* which in-turn affect the *Gross Revenue*. 
 
 ### 1c. Causal Theory
 
 ![](causal_theory.png){width=60%}
 
 
-|   Our research question seeks to measure the impact of the *MPAA Rating* (more specifically, PG-13 versus R) on the *Gross box office revenue*. A movie typically receives an R rating by the MPAA for some combination of violent content, adult content, explicit language, and drug use. In addition to these factors contributing to the MPAA rating, they also contribute to the quality of the movie. We expect to show that both MPAA rating and movie quality impact the gross revenue of the film. By adjusting the movie's content to secure the desired rating, we may also affect the quality of the movie. Therefore, this study will explore models that include a proxy for movie quality to attempt to minimize omitted variable bias.
-
+>   Our research question seeks to measure the impact of the *MPAA Rating* (more specifically, PG-13 versus R) on the *Gross box office revenue*. A movie typically receives an R rating by the MPAA for some combination of violent content, adult content, explicit language, and drug use. In addition to these factors contributing to the MPAA rating, they also contribute to the quality of the movie. We expect to show that both MPAA rating and movie quality impact the gross revenue of the film. By adjusting the movie's content to secure the desired rating, we may also affect the quality of the movie. Therefore, this study will explore models that include a proxy for movie quality to attempt to minimize omitted variable bias.
 
 ## 2. Research Design and Data
 
@@ -54,7 +51,7 @@ After you have presented the introduction and the concepts that are under invest
 
 ### 2a. Data Source
 
-|   The data used for this study is a movie dataset from Kaggle (https://www.kaggle.com/danielgrijalvas/movies). It contains 7512 unique movie titles ranging from the year 1986 to 2020. According to the description of the creator of the dataset, the data was scraped from IMDb.com so the extent of the movie title coverage can go as far as the available information posted on the IMBd website. Below are the important columns that were considered for this study:
+>   The data used for this study is a movie dataset from Kaggle (https://www.kaggle.com/danielgrijalvas/movies). It contains 7512 unique movie titles ranging from the year 1986 to 2020. According to the description of the creator of the dataset, the data was scraped from IMDb.com so the extent of the movie title coverage can go as far as the available information posted on the IMBd website. Below are the important columns that were considered for this study:
 
 * Outcome Variable
     + `gross`   : Revenue of the movie in USD
@@ -68,17 +65,17 @@ After you have presented the introduction and the concepts that are under invest
     
 ### 2b. Research Design
 
-|   Using the data and variables above, this study measured the impact *MPAA Rating* and *Movie Quality* on the *Gross Revenue* that a movie will generate. Causal models were generated using the logic from the causal theory in 1c. `gross` is the main quantified success variable. According to the causal theory, two main explanatory quantities were included in the model. `rating` was used to quantify the MPAA rating of the film while `score` is the main quantified measurement of quality. `budget` and `runtime` both affect the the movie quality, but not the `rating` so they were considered as proxies for quality.
+>   Using the data and variables above, this study measured the impact *MPAA Rating* and *Movie Quality* on the *Gross Revenue* that a movie will generate. Causal models were generated using the logic from the causal theory in 1c. `gross` is the main quantified success variable. According to the causal theory, two main explanatory quantities were included in the model. `rating` was used to quantify the MPAA rating of the film while `score` is the main quantified measurement of quality. `budget` and `runtime` both affect the the movie quality, but not the `rating` so they were considered as proxies for quality.
 
-|   The outcome of interest is `gross`, the revenue of the movie in USD. This is the main outcome variable of all the causal models and is quantified in numeric form as is.
+>   The outcome of interest is `gross`, the revenue of the movie in USD. This is the main outcome variable of all the causal models and is quantified in numeric form as is.
 
-|   In order to properly quantify `rating` in the model, indicator variables were used. The data was divided into two (2) categories: PG-13, and R. All movies rated PG-13 were given a separate indicator variable (`PG13`) while all movies rated R were treated as the base-case.
+>   In order to properly quantify `rating` in the model, indicator variables were used. The data was divided into two (2) categories: PG-13, and R. All movies rated PG-13 were given a separate indicator variable (`PG13`) while all movies rated R were treated as the base-case.
 
-|   Measuring movie quality is primarily measured by the `score` variable. Variables like `budget` and `runtime` also have an effect on quality so they were considered as possible proxies for quality in the causal models.
+>   Measuring movie quality is primarily measured by the `score` variable. Variables like `budget` and `runtime` also have an effect on quality so they were considered as possible proxies for quality in the causal models.
 
-|   In order to remove duplicate movie titles, the data point with the larger budget was retained. If both the budgets and titles were equal, the data point with the larger revenue was retained.
+>   In order to remove duplicate movie titles, the data point with the larger budget was retained. If both the budgets and titles were equal, the data point with the larger revenue was retained.
 
-|   Based on our EDA, it seems likely that a log transformation of both gross revenue and budget may be helpful to produce a better-fitting linear model. The dataset was divided into two parts: 30% for model building and 70% for model validation. The first set portion of the dataset was used to produce multiple linear models and evaluate them using coefficient tests in R. Stargazer was used to compared the models to determine which model best aligns with the data and our causal theory. Armed with this chosen model, its predictions ever evaluated against the test data to check how the model stood up when applied to the second set of data that we saved for validation. Finally, the model was applied to the specific case outlined in the overview section above to predict the revenue for both a PG-13 and R MPAA rating case.
+>   The filtered dataset was used to produce multiple linear models and evaluate them using coefficient tests in R. Stargazer was used to compared the models to determine which model best aligns with the data and our causal theory. Armed with this chosen model, its predictions were evaluated to check how well the model is able to predict the revenue based on the input parameters. Finally, the model was applied to the specific case outlined in the overview section above to predict the revenue for both a PG-13 and R MPAA rating case.
 
 ### 2c. Data Cleaning
 
@@ -151,17 +148,11 @@ for(i in 1:nrow(df_raw)) {       # for-loop over rows
 
 # Apply Indicator variable for PG-13 (R is the base case)
 df$PG13 = factor(ifelse(df$rating == "PG-13" , 1, 0))
-
 ```
 
 ### 2d. Exploratory Data Analysis
 
-```{r}
-nrow(df)
-```
-
-
-|   There are 4269 unique titles considered for this study.
+>   There are `r nrow(df)` unique titles considered for this study.
 
 ```{r - EDA: Check main financial variables}
 gross_histogram <- df %>%
@@ -220,18 +211,10 @@ runtime_histogram <- df %>%
 grid.arrange(ratings_distribution_histogram, score_histogram,  
              votes_histogram, log_votes_histogram,
              runtime_histogram, year_histogram,
-             nrow = 3, ncol = 2, top = "Numeric Variable Distributions")
+             nrow = 3, ncol = 2, top = "Explanatory Variable Distributions")
 ```
 
-```{r - Check for correlation between gross and year}
-
-# Correlation between log(gross) and year - weak correlation at best
-cor(log(df$gross), df$year, method = "pearson")
-cor(log(df$gross), df$year, method = "spearman")
-cor(log(df$gross), df$year, method = "kendall")
-```
-
-|   There doesn't seem to be a strong correlation between the year and revenue of the movie. So it might not be necessary to adjust the `gross` data for inflation.
+>   There doesn't seem to be a strong correlation between the year and revenue of the movie. So it might not be necessary to adjust the `gross` data for inflation.
 
 ```{r - Evaluate numeric variables for perfect collinearity, message = FALSE, warning = FALSE, error = FALSE}
 
@@ -249,7 +232,7 @@ df_collinearity = select(df_collinearity, c('log_gross', 'log_budget', 'score', 
 ggpairs(df_collinearity)
 ```
 
-|   According to the correlation plots above, the explanatory variables do not seem to have any strong correlation to each other. The log-transformed data for `budget` and `votes` may have decent correlation with the log-transformed data for `gross` (the outcome variable), but this should not produce any problems for finding an BLP for this data.
+>   According to the correlation plots above, the explanatory variables do not seem to have any strong correlation to each other. The log-transformed data for `budget` and `votes` may have decent correlation with the log-transformed data for `gross` (the outcome variable), but this should not produce any problems for finding an BLP for this data.
 
 
 ## 3. Analysis
@@ -296,20 +279,20 @@ test  = subset(df, sample == FALSE)
 
 #Model 1: Rating Only
 # Base Case - R Movies
-model_1 = lm(log(gross) ~ PG13, data = train)
+model_1 = lm(log(gross) ~ PG13, data = df)
 
 #Model 2: Rating and Quality
 # Base Case - R Movies with rating of 0
-model_2 = lm(log(gross) ~ PG13 + score, data = train)
+model_2 = lm(log(gross) ~ PG13 + score, data = df)
 
 #Model 3: Rating and Quality with interaction terms
-model_3 = lm(log(gross) ~ PG13 + score + PG13*score, data = train)
+model_3 = lm(log(gross) ~ PG13 + score + PG13*score, data = df)
 
 #Model 4: Rating and Quality with budget
-model_4 = lm(log(gross) ~ PG13 + score + log(budget), data = train)
+model_4 = lm(log(gross) ~ PG13 + score + log(budget), data = df)
 
 #Model 5: Rating and Quality with budget and interaction terms
-model_5 = lm(log(gross) ~ PG13 + score + PG13 * score + log(budget) + log(budget) * PG13, data = train)
+model_5 = lm(log(gross) ~ PG13 + score + PG13 * score + log(budget) + log(budget) * PG13, data = df)
 
 
 stargazer(
@@ -326,87 +309,175 @@ stargazer(
 
 ```{r model score and rating}
 # test
-model_6 = lm(score ~ PG13, data = train)
+model_6 = lm(score ~ PG13, data = df)
 summary(model_6)
 ```
 
-|   The first model (1) measures only the effect of changing the MPAA rating (PG-13 or R) on the gross revenue of the movie. $\beta_0$ is the estimated revenue that an R-rated movie is estimated to generate while $\beta_1$ is the estimated gain or in revenue if the movie is rated PG-13.
+```{r - Function to interpret coefficients}
+level_to_log <- function(coeff) {
+  # Inputs the coefficient of an untransformed variable
+  # Returns the % change in the log-transformed outcome variable per unit increase in coeff
+  return ((exp(coeff)-1)*100)
+}
+
+log_log_pct_change <- function(coeff, pct_change) {
+  # Inputs the coefficient of an untransformed variable and the percent change
+  # Returns the % change in the log-transformed outcome variable given the % increase in the log-transformed explanatory variable
+  # Basis: https://medium.com/@kyawsawhtoon/log-transformation-purpose-and-interpretation-9444b4b049c9
+  input_ratio = 1+(pct_change/100)
+  output_ratio = input_ratio ^ coeff
+  return ((output_ratio-1)*100)
+}
+
+```
+
+>   In order to answer the research question, according to our causal theory, the two main factors that affect a movie's revenue that will be measured are *Quality* and *MPP Rating*. Other variables would either contribute to, or interact with, the two main factors.
+
+>   Based on our EDA, log transformations of both the gross revenue (`gross`) and `budget` variables seemed helpful to produce a better-fitting linear model. This is because of the skewed nature of the data where both the financial variables have most data points toward zero with some extreme outliers (movies that generated a very large revenue). Other numeric variables did not seem to require any transformations because the distribution seemed symmetrical enough.
+
+>   The first model (1) measures only the effect of changing the MPAA rating (PG-13 or R) on the gross revenue of the movie. $\beta_0$ is the estimated revenue that an R-rated movie is estimated to generate while $\beta_1$ is the estimated gain or in revenue if the movie is rated PG-13.
 
 (1) $$ ln(Gross) = \beta_0 + \beta_1 * PG13 $$
 
-
-```{r model1 coeff interp}
-m1_int = (exp(16.770))
-m1Rto_PG13 = (exp(1.044)-1)*100
-
-m1_int
-m1Rto_PG13
+```{r - model 1 Beta 0 interpretation}
+# Expected revenue for R-rated movies
+m1b0 = round(exp(summary(model_1)$coefficients[1]), digits = 2)
 ```
-> 184% percent change in gross if rating changes from R to PG13?? is this right?
-> 19.2 million gross for R movies
 
+> Based on model (1) movies rated R are expected to generate $`r m1b0` in gross revenue (with no other factors).
 
-|   The second model (2) introduced the effect of a film's IMDb score on the gross revenue alongside the basic coefficients. $\beta_2$ indicates the estimated gain in revenue per increase in IMDb score.
+```{r - model 1 Beta 1 interpretation}
+# Expected increase in revenue for movies rated PG-13 over R 
+m1b1 = round(level_to_log(summary(model_1)$coefficients[2]), digits = 2)
+```
+
+> Based on the same model, movies rated PG-13 are likely to generate `r m1b1`% more gross revenue than a movie rated R.
+
+\
+|   The second model (2) introduced the effect of a film's IMDb score on the gross revenue alongside the basic coefficients. $\beta_2$ indicates the estimated gain in revenue per increase in IMDb score. This model includes the variable for quality (`score`).
 
 (2) $$ ln(Gross) = \beta_0 + \beta_1 * PG13 + \beta_2 * Score $$
 
-```{r model2 coeff interp}
-m2_int = (exp(13.659))
-m2Rto_PG13 = (exp(1.142)-1)*100
-m2_score =(exp(0.480)-1)*100
 
-m2_int
-m2Rto_PG13
-m2_score
+```{r - model 2 Beta 0 interpretation}
+# Expected revenue for R-rated movies
+m2b0 = round(exp(summary(model_2)$coefficients[1]), digits = 2)
 ```
 
-> 213% percent change in gross if rating changes from R to PG13 while holding score constant?? is this right?
-> 855k gross for R movies with zero rating (this does not matter for model)
-> 61.6% increase in gross if rating goes up 1 point
+> Based on model (2) movies rated R are expected to generate $`r m2b0` in gross revenue (with no other factors).
 
-|   The third model (3) introduced the possible effect of the interaction of a film's IMDb score and ratings on the gross revenue alongside the basic coefficients. $\beta_3$ indicates the estimated extra gain in revenue per increase in IMDb score if the movie is rated PG-13.
+```{r - model 2 Beta 1 interpretation}
+# Expected increase in revenue for movies rated PG-13 over R 
+m2b1 = round(level_to_log(summary(model_2)$coefficients[2]), digits = 2)
+```
+
+> Movies rated PG-13 are likely to generate `r m2b1`% more gross revenue than a movie rated R.
+
+```{r - model 2 Beta 2 interpretation}
+# Expected increase in revenue for movies rated PG-13 over R 
+m2b2 = round(level_to_log(summary(model_2)$coefficients[3]), digits = 2)
+```
+
+> Movies are expected to generate `r m2b2`% more gross revenue per 1 point increase in score.
+
+\
+|   The third model (3) introduced the possible effect of the interaction of a film's IMDb score and rating on the gross revenue alongside the basic coefficients. $\beta_3$ indicates the estimated extra gain in revenue per increase in IMDb score if the movie is rated PG-13. The effect of $\beta_3$ would capture any interaction between the two main quantities and its effect on the movie's gorss revenue.
 
 (3) $$ ln(Gross) = \beta_0 + \beta_1 * PG13 + \beta_2 * Score + \beta_3 * PG13 * Score $$
 
-
-```{r model3 coeff interp}
-
+```{r model 3 Beta 0 interpretation}
+m3b0 = round(exp(summary(model_3)$coefficients[1]), digits = 2)
 ```
 
+> Based on model (3) movies rated R are expected to generate $`r m3b0` in gross revenue (with no other factors).
 
-|   The fourth model (4) introduced the possible effect of a film's budget on the gross revenue alongside the basic coefficients for rating and score. $\beta_3$ indicates the estimated extra gain in revenue per increase in IMDb score if the movie is rated PG-13.
+```{r model 3 Beta 1 interpretation}
+m3b1 = round(level_to_log(summary(model_3)$coefficients[2]), digits = 2)
+```
+
+> Movies rated PG-13 are likely to generate `r m3b1`% more gross revenue than a movie rated R.
+
+```{r model 3 Beta 2 interpretation}
+m3b2 = round(level_to_log(summary(model_3)$coefficients[3]), digits = 2)
+```
+
+> Movies are expected to generate `r m3b2`% more gross revenue per 1 point increase in score.
+
+```{r model 3 Beta 3 interpretation}
+m3b3 = round(level_to_log(summary(model_3)$coefficients[4]), digits = 2)
+```
+
+> Movies rated R are expected to generate `r m3b3`% more gross revenue per 1 point increase in score than movies rated PG-13.
+
+\
+|   The fourth model (4) introduced the possible effect of a film's budget on the gross revenue alongside the basic coefficients for rating and score. $\beta_3$ indicates the estimated extra gain in revenue per increase in IMDb score if the movie is rated PG-13. Since it is a well-known fact that the budget is a big contributing factor in the quality and revenue of a movie, it was included to measure its effect on the gross revenue of a movie without any interactions.
 
 (4) $$ ln(Gross) = \beta_0 + \beta_1 * PG13 + \beta_2 * Score + \beta_3 * ln(Budget)$$
 
-```{r model4 coeff interp}
-
+```{r model 4 Beta 0 interpretation}
+m4b0 = round(exp(summary(model_4)$coefficients[1]), digits = 2)
 ```
 
-|   The fifth model (5) introduced the possible effect of the interaction of a film's IMDb score and ratings as well as the interaction between MPAA rating and budget on the gross revenue alongside the basic coefficients. $\beta_3$ indicates the estimated extra gain in revenue per increase in IMDb score if the movie is rated PG-13. $\beta_4$ indicates the estimated extra gain in revenue per increase in IMDb score if the movie is rated PG-13. $\beta_5$ indicates the estimated extra gain in revenue per increase in budget if the movie is rated PG-13.
+> Based on model (4) movies rated R are expected to generate a in $`r m4b0` in gross revenue (with no other factors).
+
+```{r model 4 Beta 1 interpretation}
+m4b1 = round(level_to_log(summary(model_4)$coefficients[2]), digits = 2)
+```
+
+> Movies rated PG-13 are likely to generate `r m4b1`% more gross revenue than a movie rated R.
+
+```{r model 4 Beta 2 interpretation}
+m4b2 = round(level_to_log(summary(model_4)$coefficients[3]), digits = 2)
+```
+
+> Movies are expected to generate `r m4b2`% more gross revenue per 1 point increase in score.
+
+```{r model 4 Beta 3 interpretation}
+m4b3 = round(log_log_pct_change(summary(model_4)$coefficients[4], 10), digits = 2)
+```
+
+> Movies are expected to generate `r m4b3`% more gross revenue if the budget is increased by 10%.
+
+\
+|   The fifth model (5) introduced the possible effect of the interaction of a film's IMDb score and rating as well as the interaction between MPAA rating and budget on the gross revenue alongside the basic coefficients. $\beta_3$ indicates the estimated extra gain in revenue per increase in IMDb score if the movie is rated PG-13. $\beta_4$ indicates the estimated extra gain in revenue per increase in IMDb score if the movie is rated PG-13. $\beta_5$ indicates the estimated extra gain in revenue per increase in budget if the movie is rated PG-13. In addition to testing for any significant effect of the interaction of quality (`score`) and rating, model (5) also tests to check if the effect if the changing rating changes the effect of budget on the film's revenue as well.
 
 (5) $$ ln(Gross) = \beta_0 + \beta_1 * PG13 + \beta_2 * Score + \beta_3 * PG13 * Score  + \beta_4 * ln(Budget) + \beta_5 * PG13 * ln(Budget) $$
 
-```{r model5 coeff interp}
-
+```{r model 5 Beta 0 interpretation}
+m5b0 = round(exp(summary(model_5)$coefficients[1]), digits = 2)
 ```
 
+> Based on model (5) movies rated R are expected to generate $`r m5b0` in gross revenue (with no other factors).
 
-### 3b. Model Validation
-
-```{r - Model validation}
-library(forecast)
-# Example is Model 5 but can be changed
-test$predicted = predict(model_5, test)
-test$residuals = log(test$gross)-test$predicted
-
-test %>%
-  ggplot(aes(x=predicted, y=(log(gross)-predicted))) +
-  geom_point() +
-  ggtitle("Model Residuals vs Prediction Plot") +
-  stat_smooth(se=TRUE, level=0.95)
-
-
+```{r model 5 Beta 1 interpretation}
+m5b1 = round(level_to_log(summary(model_5)$coefficients[2]), digits = 2)
 ```
+
+> Movies rated PG-13 are likely to generate `r m5b1`% more gross revenue than a movie rated R.
+
+```{r model 5 Beta 2 interpretation}
+m5b2 = round(level_to_log(summary(model_5)$coefficients[3]), digits = 2)
+```
+
+> Movies are expected to generate `r m5b2`% more gross revenue per 1 point increase in score.
+
+```{r model 5 Beta 3 interpretation}
+m5b3 = round(log_log_pct_change(summary(model_5)$coefficients[4], 10), digits = 2)
+```
+
+> Movies are expected to generate `r m5b3`% more gross revenue if the budget is increased by 10%.
+
+```{r model 5 Beta 4 interpretation}
+m5b4 = round(level_to_log(summary(model_5)$coefficients[5]), digits = 2)
+```
+
+> Movies rated PG-13 are expected to generate `r m5b4`% more gross revenue than movies rated R per 1 point increase in score.
+
+```{r model 5 Beta 5 interpretation}
+m5b5 = round(log_log_pct_change(summary(model_5)$coefficients[6], 10), digits = 2)
+```
+
+> Movies rated PG-13 are expected to generate `r m5b5`% more gross revenue than movies rated R if the budget is increased by 10%.
 
 
 ## 4. A Results Section
@@ -415,19 +486,32 @@ You should display all of your model specifications in a regression table, using
 
 In your text, comment on both *statistical significance and practical significance*. You may want to include statistical tests besides the standard t-tests for regression coefficients. Here, it is important that you make clear to your audience the practical significance of any model results. How should the product change as a result of what you have discovered? Are there limits to how much change you are proposing? What are the most important results that you have discovered, and what are the least important? 
 
-## 4. Limitations of your Model 
+```{r - Model Table}
+stargazer(
+  model_1, 
+  model_2,
+  model_3,
+  model_4,
+  model_5,
+  type = 'text', header = FALSE, 
+  star.cutoffs = c(0.05, 0.01, 0.001) # the default isn't in line with w203
+)
 
-### 4a. Statistical limitations of your model
+```
+
+## 5. Limitations of your Model 
+
+### 5a. Statistical limitations of your model
 
 As a team, evaluate all of the large sample model assumptions. However, you do not necessarily want to discuss every assumption in your report. Instead, highlight any assumption that might pose significant problems for your analysis. For any violations that you identify, describe the statistical consequences. If you are able to identify any strategies to mitigate the consequences, explain these strategies. 
 
 Note that you may need to change your model specifications in response to violations of the large sample model. 
 
-### 4b. Structural limitations of your model
+### 5b. Structural limitations of your model
 
 What are the most important *omitted variables* that you were not able to measure and include in your analysis? For each variable you name, you should *reason about the direction of bias* caused by omitting this variable and whether the omission of this variable calls into question the core results you are reporting. What data could you collect that would resolve any omitted variables bias? 
 
-## 5. Conclusion
+## 6. Conclusion
 
 Make sure that you end your report with a discussion that distills key insights from your estimates and addresses your research question. 
 
