@@ -246,7 +246,8 @@ df_collinearity$log_votes = log(df_collinearity$votes)
 df_collinearity = select(df_collinearity, c('log_adj_gross', 'log_adj_budget', 'score', 'runtime', 'year', 'log_votes'))
 
 # check for collinearity
-ggpairs(df_collinearity)
+ggpairs(df_collinearity) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
 ```
 
 >   According to the correlation plots above, the explanatory variables do not seem to have any strong correlation to each other. The log-transformed data for `adj_budget` and `votes` may have decent correlation with the log-transformed data for `adj_gross` (the outcome variable), but this should not produce any problems for finding an BLP for this data.
@@ -275,12 +276,11 @@ Your goal is to choose models that encircle the space of reasonable modeling cho
 
 Proposed Models:
 
-(1) $$ ln(Adjusted Gross) = \beta_0 + \beta_1 * PG13 $$
-(2) $$ ln(Adjusted Gross) = \beta_0 + \beta_1 * PG13 + \beta_2 * Score $$
-(3) $$ ln(Adjusted Gross) = \beta_0 + \beta_1 * PG13 + \beta_2 * Score + \beta_3 * PG13 * Score $$
-(4) $$ ln(Adjusted Gross) = \beta_0 + \beta_1 * PG13 + \beta_2 * Score + \beta_3 * ln(Adjusted Budget)$$
-(5) $$ ln(Adjusted Gross) = \beta_0 + \beta_1 * PG13 + \beta_2 * Score + \beta_3 * PG13 * Score $$  
-    $$ + \beta_4 * ln(Adjusted Budget) + \beta_5 * PG13 * ln(Adjusted Budget) $$
+(1) $$ ln(Gross) = \beta_0 + \beta_1 * PG13 $$
+(2) $$ ln(Gross) = \beta_0 + \beta_1 * PG13 + \beta_2 * Score $$
+(3) $$ ln(Gross) = \beta_0 + \beta_1 * PG13 + \beta_2 * Score + \beta_3 * PG13 * Score $$
+(4) $$ ln(Gross) = \beta_0 + \beta_1 * PG13 + \beta_2 * Score + \beta_3 * ln(Budget)$$
+(5) $$ ln(Gross) = \beta_0 + \beta_1 * PG13 + \beta_2 * Score + \beta_3 * PG13 * Score + \beta_4 * ln(Budget) + \beta_5 * PG13 * ln(Budget) $$
  
 ```{r - Create the models}
 
@@ -301,21 +301,23 @@ model_4 = lm(log(adj_gross) ~ PG13 + score + log(adj_budget), data = df)
 #Model 5: Rating and Quality with budget and interaction terms
 model_5 = lm(log(adj_gross) ~ PG13 + score + PG13 * score + log(adj_budget) + log(adj_budget) * PG13, data = df)
 
-
-stargazer(
-  model_1, 
-  model_2,
-  model_3,
-  model_4,
-  model_5,
-  type = 'text',
-  header = FALSE, 
-  star.cutoffs = c(0.05, 0.01, 0.001) # the default isn't in line with w203
-)
-
 ```
 
-```{r model score and rating}
+```{r create stargazer (1), results = "asis"}
+#stargazer(
+#  model_1, 
+#  model_2,
+#  model_3,
+#  model_4,
+#  model_5,
+#  type = 'latex',
+#  header = FALSE, 
+#  omit.stat=c("f", "ser"),
+#  star.cutoffs = c(0.05, 0.01, 0.001) # the default isn't in line with w203
+#)
+```
+
+```{r model score and rating, results = "asis"}
 # test
 model_6 = lm(score ~ PG13, data = df)
 summary(model_6)
@@ -494,17 +496,19 @@ You should display all of your model specifications in a regression table, using
 
 In your text, comment on both *statistical significance and practical significance*. You may want to include statistical tests besides the standard t-tests for regression coefficients. Here, it is important that you make clear to your audience the practical significance of any model results. How should the product change as a result of what you have discovered? Are there limits to how much change you are proposing? What are the most important results that you have discovered, and what are the least important? 
 
-```{r - Model Table}
+```{r create stargazer, results = "asis"}
 stargazer(
   model_1, 
   model_2,
   model_3,
   model_4,
   model_5,
-  type = 'text', header = FALSE, 
+  type = 'latex',
+  header = FALSE, 
+  omit.stat=c("f", "ser"),
   star.cutoffs = c(0.05, 0.01, 0.001) # the default isn't in line with w203
 )
-
+```
 ```
 
 ## 5. Limitations of your Model 
