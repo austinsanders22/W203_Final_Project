@@ -6,7 +6,7 @@ output: pdf_document
 ---
 
 ```{r - Setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 
 MIN_REVENUE = 1
 MIN_BUDGET = 1
@@ -23,7 +23,8 @@ library(hash)
 library(caTools)
 library(GGally)
 
-data <- read.csv(file = "movies.csv")
+data <- read.csv(file = "../data/movies.csv")
+cpi <- read.csv(file = "../data/CPI_by_Year.csv")
 ```
 
 ## 1. Introduction
@@ -75,9 +76,21 @@ After you have presented the introduction and the concepts that are under invest
 
 >   In order to remove duplicate movie titles, the data point with the larger budget was retained. If both the budgets and titles were equal, the data point with the larger revenue was retained.
 
+>   Because our dataset covers a period of 50 years, we are applying a CPI-based price adjustment to each monetary variable to account for inflation. The inflation-adjusted valuse (in 2020 dollars) will be represented with the 'adj_gross' and 'adj_budget' variables.
+
 >   The filtered dataset was used to produce multiple linear models and evaluate them using coefficient tests in R. Stargazer was used to compared the models to determine which model best aligns with the data and our causal theory. Armed with this chosen model, its predictions were evaluated to check how well the model is able to predict the revenue based on the input parameters. Finally, the model was applied to the specific case outlined in the overview section above to predict the revenue for both a PG-13 and R MPAA rating case.
 
 ### 2c. Data Cleaning
+>   Removed entries with budget under `r MIN_BUDGET` or gross revenue under `r MIN_REVENUE` to filter out small-scale releases that do not fit the mold of the type of movie we want to measure.
+
+>   Removed entries that were not rated PG-13 or R.
+
+>   Removed duplicate entries as discussed in the previous section.
+
+>   Created indicator variable for PG-13 rating.
+
+>   Created CPI-adjusted variables for gross revenue and budget.
+
 
 ```{r Data Cleaning}
 # Retrieve only the needed columns
@@ -148,6 +161,10 @@ for(i in 1:nrow(df_raw)) {       # for-loop over rows
 
 # Apply Indicator variable for PG-13 (R is the base case)
 df$PG13 = factor(ifelse(df$rating == "PG-13" , 1, 0))
+
+# Perform CPI adjustment to both gross and budget variables.
+df <- merge(x = df, y = cpi, by= 'year')
+df <- transform(df, adj_gross = gross * adjust_to_2020_dollars, adj_budget = budget * adjust_to_2020_dollars)
 ```
 
 ### 2d. Exploratory Data Analysis
@@ -156,19 +173,19 @@ df$PG13 = factor(ifelse(df$rating == "PG-13" , 1, 0))
 
 ```{r - EDA: Check main financial variables}
 gross_histogram <- df %>%
-  ggplot(aes(gross)) +
+  ggplot(aes(adj_gross)) +
   geom_histogram(bins=30)
 
 log_gross_histogram <- df %>%
-  ggplot(aes(log(gross))) +
+  ggplot(aes(log(adj_gross))) +
   geom_histogram(bins=30)
 
 budget_histogram <- df %>%
-  ggplot(aes(budget)) +
+  ggplot(aes(adj_budget)) +
   geom_histogram(bins=30)
 
 log_budget_histogram <- df %>%
-  ggplot(aes(log(budget))) +
+  ggplot(aes(log(adj_budget))) +
   geom_histogram(bins=30)
 
 grid.arrange(gross_histogram, log_gross_histogram,
@@ -218,21 +235,21 @@ grid.arrange(ratings_distribution_histogram, score_histogram,
 
 ```{r - Evaluate numeric variables for perfect collinearity, message = FALSE, warning = FALSE, error = FALSE}
 
-df_collinearity = select(df, c('gross', 'budget', 'score', 'runtime', 'year', 'votes'))
+df_collinearity = select(df, c('adj_gross', 'adj_budget', 'score', 'runtime', 'year', 'votes'))
 
-# Log-Transform `gross`, `budget`, and `votes`
-df_collinearity$log_gross = log(df_collinearity$gross)
-df_collinearity$log_budget = log(df_collinearity$budget)
+# Log-Transform `adj_gross`, `adj_budget`, and `votes`
+df_collinearity$log_adj_gross = log(df_collinearity$adj_gross)
+df_collinearity$log_adj_budget = log(df_collinearity$adj_budget)
 df_collinearity$log_votes = log(df_collinearity$votes)
 
 # Remove `gross`, `budget`, and `votes`
-df_collinearity = select(df_collinearity, c('log_gross', 'log_budget', 'score', 'runtime', 'year', 'log_votes'))
+df_collinearity = select(df_collinearity, c('log_adj_gross', 'log_adj_budget', 'score', 'runtime', 'year', 'log_votes'))
 
 # check for collinearity
 ggpairs(df_collinearity)
 ```
 
->   According to the correlation plots above, the explanatory variables do not seem to have any strong correlation to each other. The log-transformed data for `budget` and `votes` may have decent correlation with the log-transformed data for `gross` (the outcome variable), but this should not produce any problems for finding an BLP for this data.
+>   According to the correlation plots above, the explanatory variables do not seem to have any strong correlation to each other. The log-transformed data for `adj_budget` and `votes` may have decent correlation with the log-transformed data for `adj_gross` (the outcome variable), but this should not produce any problems for finding an BLP for this data.
 
 
 ## 3. Analysis
@@ -258,41 +275,31 @@ Your goal is to choose models that encircle the space of reasonable modeling cho
 
 Proposed Models:
 
-(1) $$ ln(Gross) = \beta_0 + \beta_1 * PG13 $$
-(2) $$ ln(Gross) = \beta_0 + \beta_1 * PG13 + \beta_2 * Score $$
-(3) $$ ln(Gross) = \beta_0 + \beta_1 * PG13 + \beta_2 * Score + \beta_3 * PG13 * Score $$
-(4) $$ ln(Gross) = \beta_0 + \beta_1 * PG13 + \beta_2 * Score + \beta_3 * ln(Budget)$$
-(5) $$ ln(Gross) = \beta_0 + \beta_1 * PG13 + \beta_2 * Score + \beta_3 * PG13 * Score  + \beta_4 * ln(Budget) + \beta_5 * PG13 * ln(Budget) $$
+(1) $$ ln(Adjusted Gross) = \beta_0 + \beta_1 * PG13 $$
+(2) $$ ln(Adjusted Gross) = \beta_0 + \beta_1 * PG13 + \beta_2 * Score $$
+(3) $$ ln(Adjusted Gross) = \beta_0 + \beta_1 * PG13 + \beta_2 * Score + \beta_3 * PG13 * Score $$
+(4) $$ ln(Adjusted Gross) = \beta_0 + \beta_1 * PG13 + \beta_2 * Score + \beta_3 * ln(Adjusted Budget)$$
+(5) $$ ln(Adjusted Gross) = \beta_0 + \beta_1 * PG13 + \beta_2 * Score + \beta_3 * PG13 * Score $$  
+    $$ + \beta_4 * ln(Adjusted Budget) + \beta_5 * PG13 * ln(Adjusted Budget) $$
  
-
-```{r - Split data into training and test portions}
-require(caTools)
-set.seed(203) 
-sample = sample.split(df, SplitRatio = .30)
-train = subset(df, sample == TRUE)
-test  = subset(df, sample == FALSE)
-
-```
-
-
 ```{r - Create the models}
 
 #Model 1: Rating Only
 # Base Case - R Movies
-model_1 = lm(log(gross) ~ PG13, data = df)
+model_1 = lm(log(adj_gross) ~ PG13, data = df)
 
 #Model 2: Rating and Quality
 # Base Case - R Movies with rating of 0
-model_2 = lm(log(gross) ~ PG13 + score, data = df)
+model_2 = lm(log(adj_gross) ~ PG13 + score, data = df)
 
 #Model 3: Rating and Quality with interaction terms
-model_3 = lm(log(gross) ~ PG13 + score + PG13*score, data = df)
+model_3 = lm(log(adj_gross) ~ PG13 + score + PG13*score, data = df)
 
 #Model 4: Rating and Quality with budget
-model_4 = lm(log(gross) ~ PG13 + score + log(budget), data = df)
+model_4 = lm(log(adj_gross) ~ PG13 + score + log(adj_budget), data = df)
 
 #Model 5: Rating and Quality with budget and interaction terms
-model_5 = lm(log(gross) ~ PG13 + score + PG13 * score + log(budget) + log(budget) * PG13, data = df)
+model_5 = lm(log(adj_gross) ~ PG13 + score + PG13 * score + log(adj_budget) + log(adj_budget) * PG13, data = df)
 
 
 stargazer(
@@ -301,7 +308,8 @@ stargazer(
   model_3,
   model_4,
   model_5,
-  type = 'text', header = FALSE, 
+  type = 'text',
+  header = FALSE, 
   star.cutoffs = c(0.05, 0.01, 0.001) # the default isn't in line with w203
 )
 
