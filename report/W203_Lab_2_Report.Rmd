@@ -40,26 +40,26 @@ cpi <- read.csv(file = "CPI_by_Year.csv")
 
 ## Context
 
-> Acme Studios has spent a $50,000,000.00 budget on a superhero movie, and the director insists that the movie should include a scene where the main villain goes on an expletive-laden tirade. We know that including this scene will mean that the movie will be rated R, and cutting the scene will result in the movie being rated PG-13. The director is extremely upset that we want to cut the scene and says we're ruining the film's artistic integrity by trying to make editorial changes after the director's cut. So upset that he went directly to the studio head to complain. Now Acme Studios’ executive team has to decide: do they modify the movie for a more family-friendly rating, or do they respect the director's wishes and release it as-is? As data scientists, we would have difficulty quantifying artistic integrity or the value of the relationship between the studio and the director. Still, we feel strongly that we can show the relationship between worldwide revenue for a PG-13 vs. R ratings (holding all other variables constant). The studio head wants to know: How much more money do they expect to make by defying the director's wishes and cutting the movie to make it PG-13?
+> Acme Studios has spent a $50,000,000.00 budget on a superhero movie, and the director insists that the film should include a scene where the main villain goes on an expletive-laden tirade. We know that having this scene will mean that the movie will be rated R, and cutting the scene will result in the movie being rated PG-13. The director is extremely upset that we want to cut the scene and says we're ruining the film's artistic integrity by making editorial changes after the director's cut. He's so upset that he went directly to the studio head to complain. Now Acme Studios' executive team has to decide: do they modify the movie for a more family-friendly rating, or do they respect the director's wishes and release it as-is? As data scientists, we would have difficulty quantifying artistic integrity or the value of the relationship between the studio and the director. Still, we feel strongly that we can show the relationship between worldwide revenue for a PG-13 vs. R ratings (holding all other variables constant). The studio head wants to know: How much more money do they expect to make by defying the director's wishes and cutting the movie to make it PG-13?
 
 ## Research Question
 
 >   *Holding other factors constant, how much more money should a movie studio expect to make on a film that gets a PG-13 rating instead of an R rating from the MPAA?*
 
->   Our research question intends to measure the impact *MPAA Rating* and *Movie Quality* on the *Gross Revenue* that it will generate. Given other available, quantifiable factors like the *Budget*, *Genre*, and *Runtime*, this study also intends to investigate if they affect the *MPAA Rating* and/or *Movie Quality* which in-turn affect the *Gross Revenue*. 
+>   Our research question intends to measure the impact of *MPAA Rating* and *Movie Quality* on the *Gross Revenue* that it will generate. Given other available, quantifiable factors like the *Budget*, *Genre*, and *Runtime*, this study also intends to investigate if they affect the *MPAA Rating* and/or *Movie Quality* which in turn affect the *Gross Revenue*. 
 
 ## Causal Theory
 
 ![](causal_theory.png){width=60%}
 
 
->   Our research question seeks to measure the impact of the *MPAA Rating* (more specifically, PG-13 versus R) on the *Gross box office revenue*. A movie typically receives an R rating by the MPAA for some combination of violent content, adult content, explicit language, and drug use. In addition to these factors contributing to the MPAA rating, they also contribute to the quality of the movie. We expect to show that both MPAA rating and movie quality impact the gross revenue of the film. By adjusting the movie's content to secure the desired rating, we may also affect the quality of the movie. Therefore, this study will explore models that include a proxy for movie quality to attempt to minimize omitted variable bias.
+>   Our research question seeks to measure the impact of the *MPAA Rating* (more specifically, PG-13 versus R) on the *Gross box office revenue*. A movie typically receives an R rating by the MPAA for some combination of violent content, adult content, explicit language, and drug use. In addition to these factors contributing to the MPAA rating, they also contribute to the quality of the movie. We expect to show that both MPAA rating and movie quality impact the film's gross revenue. By adjusting the movie's content to secure the desired rating, we may also affect the quality of the movie. Therefore, this study will explore models that include a proxy for movie quality to attempt to minimize omitted variable bias.
 
 # Research Design and Data
 
 ## Data Source
 
->   The data used for this study is a movie dataset from Kaggle (https://www.kaggle.com/danielgrijalvas/movies). It contains 7512 unique movie titles ranging from the year 1980 to 2020. According to the description of the creator of the dataset, the data was scraped from IMDb.com so the extent of the movie title coverage can go as far as the available information posted on the IMBd website. Below are the important columns that were considered for this study:
+>   The data used for this study is a movie dataset from Kaggle (https://www.kaggle.com/danielgrijalvas/movies). It contains 7512 unique movie titles ranging from the year 1980 to 2020. According to the description of the creator of the dataset, the data was scraped from IMDb.com so the extent of the movie title coverage can go as far as the available information posted on the IMDb website. Below are the important columns that were considered for this study:
 
 * Outcome Variable
     + `gross`   : Revenue of the movie in USD
@@ -69,23 +69,23 @@ cpi <- read.csv(file = "CPI_by_Year.csv")
     + `rating`  : MPAA rating of the movie (R, PG, etc.)
     + `runtime` : Length of movie in minutes
     + `budget`  : Budget of the movie in USD
-    + `votes`   : Number of user votes on the IMBd website
+    + `votes`   : Number of user votes on the IMDb website
     
 ## Research Design
 
->   Using the data and variables above, this study measured the impact *MPAA Rating* and *Movie Quality* on the *Gross Revenue* that a movie will generate. Causal models were generated using the logic from the causal theory in 1c. `gross` is the main quantified success variable. According to the causal theory, two main explanatory quantities were included in the model. `rating` was used to quantify the MPAA rating of the film while `score` is the main quantified measurement of quality. `budget` and `runtime` both affect the the movie quality, but not the `rating` so they were considered as proxies for quality.
+>   Using the data and variables above, this study measured the impact *MPAA Rating* and *Movie Quality* on the *Gross Revenue* generated by a movie. Causal models were generated using the logic from the causal theory in 1c. `gross` is the primary quantified success variable. According to the causal theory, two main explanatory quantities were included in the model. `rating` was used to quantify the MPAA rating of the film while `score` is the main quantified measurement of quality. `budget` and `runtime` both affect the movie quality, but not the `rating` so they were considered as proxies for quality.
 
->   The outcome of interest is `gross`, the revenue of the movie in USD. This is the main outcome variable of all the causal models and is quantified in numeric form as is.
+>   The outcome of interest is `gross`, the movie's revenue in USD. This is the main outcome variable of all the causal models and is quantified in numeric form.
 
->   In order to properly quantify `rating` in the model, indicator variables were used. The data was divided into two (2) categories: PG-13, and R. All movies rated PG-13 were given a separate indicator variable (`PG13`) while all movies rated R were treated as the base-case.
+> To properly quantify `rating` in the model, indicator variables were used. The data was divided into two (2) categories: PG-13 and R. All movies rated PG-13 were given a separate indicator variable (`PG13`) while all R movies were treated as the base case.
 
->   Measuring movie quality is primarily measured by the `score` variable. Variables like `budget` and `runtime` also have an effect on quality so they were considered as possible proxies for quality in the causal models.
+>   The `score` variable primarily measures movie quality. Variables like `budget` and `runtime` also affect quality, so they were considered as possible proxies for quality in the causal models.
 
->   In order to remove duplicate movie titles, the data point with the larger budget was retained. If both the budgets and titles were equal, the data point with the larger revenue was retained.
+>   In order to remove duplicated movie titles, the data point with the larger budget was retained. If both the budgets and titles were equal, the data point with the larger revenue was retained.
 
->   Because our dataset covers a period of 50 years, we are applying a CPI-based price adjustment to each monetary variable to account for inflation. The inflation-adjusted valuse (in 2020 dollars) will be represented with the 'adj_gross' and 'adj_budget' variables.
+>   Because our dataset covers 50 years, we apply a CPI-based price adjustment to each monetary variable to account for inflation. The inflation-adjusted values (in 2020 dollars) will be represented with the 'adj_gross' and 'adj_budget' variables.
 
->   The filtered dataset was used to produce multiple linear models and evaluate them using coefficient tests in R. Stargazer was used to compared the models to determine which model best aligns with the data and our causal theory. Armed with this chosen model, its predictions were evaluated to check how well the model is able to predict the revenue based on the input parameters. Finally, the model was applied to the specific case outlined in the overview section above to predict the revenue for both a PG-13 and R MPAA rating case.
+>   The filtered dataset was used to produce multiple linear models and evaluate them using coefficient tests in R. Stargazer was used to compare the models to determine which model best aligns with the data and our causal theory. Armed with this chosen model, its predictions were evaluated to check how well the model can predict the revenue based on the input parameters. Finally, the model was applied to the specific case outlined in the overview section above to predict the revenue for both a PG-13 and R MPAA rating case.
 
 ## Data Cleaning
 >   Removed entries with budget under `r MIN_BUDGET` or gross revenue under `r MIN_REVENUE` to filter out small-scale releases that do not fit the mold of the type of movie we want to measure.
@@ -174,7 +174,7 @@ df <- merge(x = df, y = cpi, by= 'year')
 df <- transform(df, adj_gross = gross * adjust_to_2020_dollars, adj_budget = budget * adjust_to_2020_dollars)
 ```
 
-## Exploratory Data Analysis - Fidelia
+## Exploratory Data Analysis
 
 >   There are `r nrow(df)` unique titles considered for this study.
 
@@ -239,7 +239,7 @@ grid.arrange(ratings_distribution_histogram, score_histogram,
              nrow = 3, ncol = 2, top = "Explanatory Variable Distributions")
 ```
 
->   Looking at the ratings_distribution graph after EDA, we can see how the dataset contains at least 1,000 more rated R movies than PG-13 movies. This could potentially affect our training/testing sets and results because we have more R data movies to work with rather than PG-13 but should still be appropriate to answer our research question. For the second graph of score vs. count, we see a relatively normal distribution that is slightly off-centered to the right with a peak around 6.25. This bell curve is expected because the ratings are scored from 0-10 and it is expected that the peak will be at the average rating (at around 5). The votes vs. count graph has a left skew with a heavy tail near 0. This is due to most of the movies in the dataset not having more than a couple thousand or tens of thousands of reviews. This data is not as visually intuitive, so by taking the log(votes), we can see a much cleaner normal distrbution with an off-center to the right once again. The runtime vs. count graph also has a normal distribution but centered to the left at about 100 minutes, meaning most of the movies in the dataset don't run longer than an hour and a half to two hours. For the final graph, we see a relatively even distribution of the number of movies released each year, except during 1980-1990 where fewer movies were released in the dataset than in 2000 or 2010. Overall, the visualizations of the histograms from the data seem to follow our expectations. The other numeric variables (except for gross revenue (`gross`) and `budget`) did not seem to require any transformations because the distribution seemed symmetrical enough.
+>   Looking at the ratings_distribution graph after EDA, we can see how the dataset contains at least 1,000 more rated R movies than PG-13 movies. This could potentially affect our training/testing sets and results because we have more R data movies to work with rather than PG-13 but should still be appropriate to answer our research question. For the second graph of score vs. count, we see a relatively normal distribution that is slightly off-centered to the right with a peak around 6.25. This bell curve is expected because the ratings are scored from 0-10 and it is expected that the peak will be at the average rating (at around 5). The votes vs. count graph has a left skew with a heavy tail near 0. This is due to most of the movies in the dataset having no more than a couple thousand or tens of thousands of reviews. This plot is not as visually intuitive, so by taking the log(votes), we can see a much cleaner normal distrbution with an off-center to the right once again. The runtime vs. count graph also has a normal distribution but centered to the left at about 100 minutes, meaning most of the movies in the dataset don't run longer than an hour and a half to two hours. For the final graph, we see a relatively even distribution of the number of movies released each year, except during 1980-1990 where fewer movies were released in the dataset than in 2000 or 2010. Overall, the visualizations of the histograms from the data seem to follow our expectations. The other numeric variables (except for gross revenue (`gross`) and `budget`) did not seem to require any transformations because the distribution seemed symmetrical enough.
 
 ```{r - Evaluate numeric variables for perfect collinearity, message = FALSE, warning = FALSE, error = FALSE}
 
@@ -304,9 +304,9 @@ log_log_pct_change <- function(coeff, pct_change) {
 
 ```
 
-Our primary input variable of interest is the *MPAA rating*, with an *R* rating as the base case and a *PG-13* rating as the alternative case. *MPAA rating* is a categoric variable with most of our dataset falling under the *R* rating and a sizable minority falling under the *PG-13* rating.
+Our primary input variable of interest is the *MPAA rating*, with an *R* rating as the base case and a *PG-13* rating as the alternative case. *MPAA rating* is a categorical variable with most of the dataset falling under the *R* rating and a sizable minority falling under the *PG-13* rating.
 
-Our causal theory has identified *Movie Quality* as another key input variable to measure because there is a relationship between the factos that determine *MPAA rating* and *Movie Quality*, and both also influence *gross revenue*. Because we don't have an exact measurement of *Movie Quality* we are using the IMDb Rating (*score*) as a proxy to help mitigate omitted variable bias. The distribution of this variable seems roughly normally distributed so no transformations were applied.
+Our causal theory has identified *Movie Quality* as another key input variable to measure because there is a relationship between the factors that determine *MPAA rating* and *Movie Quality*, which also influence *gross revenue*. Because we don't have an exact measurement of *Movie Quality*, we use the IMDb Rating (*score*) as a proxy to help mitigate omitted variable bias. The distribution of this variable seems roughly normally distributed, so no transformations were applied.
 
 Lastly, we are also prepared to consider a model that includes *budget* as a parameter because it has a strong correlation to *gross revenue*, and including it has the potential to make the predictions from our model much more accurate even if it is not directly named in our causal theory. Including *budget* has the potential to absorb some of the effect we are measuring, but there is also the potential of value in examining the interaction between *budget* and *MPAA rating*; we may find that a certain rating provides better return as the budget increases, or conversely that a certain rating does well with even very small budgets. This variable has a lopsided distribution with a heavy tail near zero and quickly becomes sparse moving to the right. Applying a log transformation makes this variable appear more evenly distributed.
 
@@ -320,25 +320,25 @@ We took an iterative approach to model building by starting with something very 
 \
 (1) $$ ln(Gross) = \beta_0 + \beta_1 * PG13 $$
 
-We started off with the most simplistic possible model to see if a measurable difference between the *gross revenue* of an *R* or *PG-13* rated movie existed. This first model (1) measures only the effect of changing the MPAA rating (PG-13 or R) on the *gross revenue* of the movie. $\beta_0$ is the *gross revenue* that an *R*-rated movie is estimated to generate while $\beta_1$ is the estimated gain in *gross revenue* if the movie is instead rated *PG-13*. This model is too simple to be our final choice, but if it had shown no significant difference in *gross revenue* it would have been a major red flag.
+We started with the most simplistic possible model to see if a measurable difference existed between the *gross revenue* of an *R* or *PG-13* rated movie. This first model (1) measures only the effect of changing the MPAA rating (PG-13 or R) on the *gross revenue* of the movie. $\beta_0$ is the *gross revenue* that an *R*-rated movie is estimated to generate, while $\beta_1$ is the estimated gain in *gross revenue* if the movie is instead rated *PG-13*. This model is too simple to be our final choice, but if it had shown no significant difference in *gross revenue* it would have been a major red flag.
 
 
 \
 (2) $$ ln(Gross) = \beta_0 + \beta_1 * PG13 + \beta_2 * Score $$
 
-The second model (2) introduced the effect of a film's *IMDb score* on the *gross revenue* on top of the components of model (1). $\beta_2$ indicates the estimated percentage increase in *gross revenue* per one point increase in *IMDb score*. Including *score* was considered a bare minimum requirement for our final model, because we are using it as a proxy for *Movie Quality* from our causal theory.
+The second model (2) introduced the effect of a film's *IMDb score* on the *gross revenue* on top of the components of model (1). $\beta_2$ indicates the estimated percentage increase in *gross revenue* per one-point increase in *IMDb score*. Including *score* was considered a bare minimum requirement for our final model because we are using it as a proxy for *Movie Quality* from our causal theory.
 
 
 \
 (3) $$ ln(Gross) = \beta_0 + \beta_1 * PG13 + \beta_2 * Score + \beta_3 * PG13 * Score $$
 
-The third model (3) introduced an interaction term between a film's *IMDb score* and *rating*, alongside the components of model (2). $\beta_3$ indicates the estimated percentage increase in revenue per one point increase in *IMDb score* if the movie is rated *PG-13*. Like in the previous model $\beta_2$ indicates the estimated percentage increase in *gross revenue* per one point increase in *IMDb score*, but having an interaction term allows *score* to impact predictions for *PG-13* and *R* differently. The magnitude of $\beta_3$ shows if the change in *gross revenue* per point of *score* is different for a *PG-13* movie than it is for an *R* movie.
+The third model (3) introduced an interaction term between a film's *IMDb score* and *rating*, alongside the components of model (2). $\beta_3$ indicates the estimated percentage increase in revenue per one-point increase in *IMDb score* if the movie is rated *PG-13*. Like in the previous model $\beta_2$ indicates the estimated percentage increase in *gross revenue* per one-point increase in *IMDb score*, but having an interaction term allows *score* to impact predictions for *PG-13* and *R* differently. The magnitude of $\beta_3$ shows if the change in *gross revenue* per point of *score* is different for a *PG-13* movie than for an *R* movie.
 
 
 \
 (4) $$ ln(Gross) = \beta_0 + \beta_1 * PG13 + \beta_2 * Score + \beta_3 * ln(Budget)$$
 
-The fourth model (4) was built on top of model (2), with the addition of a term for *budget*. Unlike model (3), an interaction term between *MPAA rating* and *score* was not included. The purpose of this model was to offer something with more predictive power than the previous models by including *budget*. We know that *gross revenue* and *budget* are strongly correlated and we expected to see this model perform better at predicting results (as measured by adjusted R-squared) than the previous models. The term $\beta_3$ in this model represents the relationship between percentage increases in *budget* and percentage increases in *gross revenue*; for every 1% increase in *budget* we expect a $\beta_3$% increase in *gross revenue*.
+The fourth model (4) was built on top of model (2), with the addition of a term for *budget*. Unlike model (3), an interaction term between *MPAA rating* and *score* was not included. The purpose of this model was to offer something with more predictive power than the previous models by including *budget*. We know that *gross revenue* and *budget* are strongly correlated, and we expected to see this model perform better at predicting results (as measured by adjusted R-squared) than the previous models. The term $\beta_3$ in this model represents the relationship between percentage increases in *budget* and percentage increases in *gross revenue*; for every 1% increase in *budget* we expect a $\beta_3$% increase in *gross revenue*.
 
 
 \
@@ -377,6 +377,7 @@ m5b1 = round(level_to_log(summary(model_5)$coefficients[2]), digits = 2)
 ```
 
 > $\beta_1$ - The baseline for *PG-13* movies with a *budget* of 0 and an *IMDb score* of 0 is even lower, as they are expected to generate 
+
 Movies rated PG-13 are likely to generate `r m5b1`% more gross revenue than a movie rated R.
 
 ```{r model 5 Beta 2 interpretation}
@@ -409,7 +410,7 @@ m5b5 = round(log_log_pct_change(summary(model_5)$coefficients[6], 10), digits = 
 
 **Inflation**
 
-We were initially concerned with our data not being identically distributed because the movies range over 40 years. The cumulative price increase from 1980 to 2020 was 214%. This change undoubtedly affects our outcome variable, gross revenue. We used the consumer price index (CPI) to calculate an inflation adjustment for gross revenue and the budget. Accounting for inflation allows us to level the playing field for movies produced across the time span.
+Initially, we were concerned that our data was not identically distributed because the movies range over 40 years. The cumulative price increase from 1980 to 2020 was 214%. This change undoubtedly affects our outcome variable, gross revenue. We used the consumer price index (CPI) to calculate an inflation adjustment for gross revenue and the budget. Accounting for inflation allows us to level the playing field for movies produced across the time span.
 
 **Common Themes**
 
@@ -417,30 +418,28 @@ Sequels and movies with common themes are not independent of each other. The suc
 
 **Best Linear Predictor**
 
-We ensured that there were not any concerns with co-linearity and non-finite variance within our data modeling. Do we need to elaborate on this? According to guidelines, we only need to highlight assumptions that pose problems for analysis.
+We ensured that there were no concerns with co-linearity and non-finite variance within our data modeling. Do we need to elaborate on this? According to guidelines, we only need to highlight assumptions that pose problems for analysis.
 
 
 ## Structural limitations of your model
 
-While our model accounts for many important variables of interest, there are other factors that could have an impact on our final model. We will discuss how omitted variables might affect each of our explanatory variables and what steps could resolve any omitted variable bias.
+While our model accounts for many important variables of interest, other factors could impact our final model. We will discuss how omitted variables might affect each of our explanatory variables and what steps could resolve any omitted variable bias.
 
 **Production Company**
 
-Different movie production companies have their niche within the Hollywood community. Certain companies will draw a strict line on violent, sexual, and other explicit content in their films. Those factors play a large role in MPAA rating. For example, Pixar Animation Studios, a subsidiary of Walt Disney  Studios, consistently produces high quality movies with a G or PG rating. While initially aimed for an adolescent population, the movies have gained success among all age groups and generated revenue reaching 1 billion dollars. Well known production companies with specific standards for content will likely still make movies with a high gross revenue. Additionally, movie critics might be partial to certain companies. Therefore, we expect the production company to bias the MPAA rating and quality score away from zero. We would need to find quality data on production companies to resolve this issue.
+Different movie production companies have their niche within the Hollywood community. Certain companies will draw a strict line on violent, sexual, and other explicit content in their films. Those factors play a large role in MPAA rating. For example, Pixar Animation Studios, a subsidiary of Walt Disney  Studios, consistently produces high-quality movies with a G or PG rating. While initially aimed for an adolescent population, the movies have gained success among all age groups and generated revenue reaching 1 billion dollars. Well-known production companies with specific standards for content will likely still make movies with high gross revenue.
+Additionally, movie critics might be partial to certain companies. Therefore, we expect the production company to bias the MPAA rating and quality score away from zero. We would need to find quality data on production companies to resolve this issue.
 
 **Popular Actors**
 
-There are a lot of similarities between the argument for production company and for popular actors. Actors can have the same standards for content. Additionally, actors gain cult-like followings among the public. People will insist on watching all Matthew McConaughey or Julia Roberts movies regardless of the quality or content. Both known factors will influence the bias for MPAA rating and quality score away from zero. We would need to investigate actor popularity to resolve thsi bias.
+There are a lot of similarities between the argument for the production company and famous actors. Actors can have the same standards for content. Additionally, actors gain cult-like followings among the public. People will insist on watching all Matthew McConaughey or Julia Roberts movies regardless of the quality or content. Both known factors will influence the bias for MPAA rating and quality score away from zero. We would need to investigate actor popularity to resolve this bias.
 
 **Movie Genre**
 
-Genre of movie often affects the MPAA rating. An action movie will have more violence, and a comedy will likely have more explicit language. The genre will impact movie quality and viewership because people gravitate to certain genres. The bias impact is up for debate and not necessarily clear. While certain genres will drive up the MPAA rating, others will drive it down. We need more information on popularity of genres to see its impact on movie scores.
+The genre of the movie often affects the MPAA rating. An action movie will have more violence, and a comedy will likely have more explicit language. The genre will impact movie quality and viewership because people gravitate to certain genres. The bias impact is up for debate and not necessarily clear. While certain genres will drive up the MPAA rating, others will drive it down. We need more information on the popularity of genres to see their impact on movie scores.
 
 # Conclusion - Fidelia
 
 Make sure that you end your report with a discussion that distills key insights from your estimates and addresses your research question.
 
-For this research study, we 
-
-
-
+For this research study, we expected to show that both MPAA rating and movie quality impact the film's gross revenue. In particular, we wanted to focus on how much more revenue should a movie studio expect to make on a film that gets a PG-13 rating instead of an R rating, holding other factors constant.
