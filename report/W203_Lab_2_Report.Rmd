@@ -2,8 +2,14 @@
 title: "Keeping it PG-13"
 author: "Steve Hewitt, Martin Lim, Fidelia Nawar, & Austin Sanders"
 date: "12/9/2021"
-output: pdf_document
+output: 
+  pdf_document: 
+    fig_caption: true
+    number_sections: true
 ---
+
+\tableofcontents
+\newpage
 
 ```{r - Setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
@@ -23,35 +29,35 @@ library(hash)
 library(caTools)
 library(GGally)
 
-data <- read.csv(file = "../data/movies.csv")
-cpi <- read.csv(file = "../data/CPI_by_Year.csv")
+# data <- read.csv(file = "../data/movies.csv")
+# cpi <- read.csv(file = "../data/CPI_by_Year.csv")
 
-# data <- read.csv(file = "movies.csv")
-# cpi <- read.csv(file = "CPI_by_Year.csv")
+data <- read.csv(file = "movies.csv")
+cpi <- read.csv(file = "CPI_by_Year.csv")
 ```
 
-## 1. Introduction
+# Introduction
 
-### 1a. Context
+## Context
 
 > Acme Studios has spent a $50,000,000.00 budget on a superhero movie, and the director insists that the movie should include a scene where the main villain goes on an expletive-laden tirade. We know that including this scene will mean that the movie will be rated R, and cutting the scene will result in the movie being rated PG-13. The director is extremely upset that we want to cut the scene and says we're ruining the film's artistic integrity by trying to make editorial changes after the director's cut. So upset that he went directly to the studio head to complain. Now Acme Studios’ executive team has to decide: do they modify the movie for a more family-friendly rating, or do they respect the director's wishes and release it as-is? As data scientists, we would have difficulty quantifying artistic integrity or the value of the relationship between the studio and the director. Still, we feel strongly that we can show the relationship between worldwide revenue for a PG-13 vs. R ratings (holding all other variables constant). The studio head wants to know: How much more money do they expect to make by defying the director's wishes and cutting the movie to make it PG-13?
 
-### 1b. Research Question
+## Research Question
 
 >   *Holding other factors constant, how much more money should a movie studio expect to make on a film that gets a PG-13 rating instead of an R rating from the MPAA?*
 
 >   Our research question intends to measure the impact *MPAA Rating* and *Movie Quality* on the *Gross Revenue* that it will generate. Given other available, quantifiable factors like the *Budget*, *Genre*, and *Runtime*, this study also intends to investigate if they affect the *MPAA Rating* and/or *Movie Quality* which in-turn affect the *Gross Revenue*. 
 
-### 1c. Causal Theory
+## Causal Theory
 
 ![](causal_theory.png){width=60%}
 
 
 >   Our research question seeks to measure the impact of the *MPAA Rating* (more specifically, PG-13 versus R) on the *Gross box office revenue*. A movie typically receives an R rating by the MPAA for some combination of violent content, adult content, explicit language, and drug use. In addition to these factors contributing to the MPAA rating, they also contribute to the quality of the movie. We expect to show that both MPAA rating and movie quality impact the gross revenue of the film. By adjusting the movie's content to secure the desired rating, we may also affect the quality of the movie. Therefore, this study will explore models that include a proxy for movie quality to attempt to minimize omitted variable bias.
 
-## 2. Research Design and Data
+# Research Design and Data
 
-### 2a. Data Source
+## Data Source
 
 >   The data used for this study is a movie dataset from Kaggle (https://www.kaggle.com/danielgrijalvas/movies). It contains 7512 unique movie titles ranging from the year 1980 to 2020. According to the description of the creator of the dataset, the data was scraped from IMDb.com so the extent of the movie title coverage can go as far as the available information posted on the IMBd website. Below are the important columns that were considered for this study:
 
@@ -65,7 +71,7 @@ cpi <- read.csv(file = "../data/CPI_by_Year.csv")
     + `budget`  : Budget of the movie in USD
     + `votes`   : Number of user votes on the IMBd website
     
-### 2b. Research Design
+## Research Design
 
 >   Using the data and variables above, this study measured the impact *MPAA Rating* and *Movie Quality* on the *Gross Revenue* that a movie will generate. Causal models were generated using the logic from the causal theory in 1c. `gross` is the main quantified success variable. According to the causal theory, two main explanatory quantities were included in the model. `rating` was used to quantify the MPAA rating of the film while `score` is the main quantified measurement of quality. `budget` and `runtime` both affect the the movie quality, but not the `rating` so they were considered as proxies for quality.
 
@@ -81,7 +87,7 @@ cpi <- read.csv(file = "../data/CPI_by_Year.csv")
 
 >   The filtered dataset was used to produce multiple linear models and evaluate them using coefficient tests in R. Stargazer was used to compared the models to determine which model best aligns with the data and our causal theory. Armed with this chosen model, its predictions were evaluated to check how well the model is able to predict the revenue based on the input parameters. Finally, the model was applied to the specific case outlined in the overview section above to predict the revenue for both a PG-13 and R MPAA rating case.
 
-### 2c. Data Cleaning
+## Data Cleaning
 >   Removed entries with budget under `r MIN_BUDGET` or gross revenue under `r MIN_REVENUE` to filter out small-scale releases that do not fit the mold of the type of movie we want to measure.
 
 >   Removed entries that were not rated PG-13 or R.
@@ -168,7 +174,7 @@ df <- merge(x = df, y = cpi, by= 'year')
 df <- transform(df, adj_gross = gross * adjust_to_2020_dollars, adj_budget = budget * adjust_to_2020_dollars)
 ```
 
-### 2d. Exploratory Data Analysis - Fidelia
+## Exploratory Data Analysis - Fidelia
 
 >   There are `r nrow(df)` unique titles considered for this study.
 
@@ -257,9 +263,9 @@ ggpairs(df_collinearity) +
 >   According to the correlation plots above, the explanatory variables do not seem to have any strong correlation to each other. The log-transformed data for `adj_budget` and `votes` may have decent correlation with the log-transformed data for `adj_gross` (the outcome variable), but this should not produce any problems for finding an BLP for this data.
 
 
-## 3. Statistical Model - rearranged, move some parts to results
+# Statistical Model - rearranged, move some parts to results
 
-### 3a. A Model Building Process
+## A Model Building Process
 
 ```{r - Create the models}
 
@@ -311,7 +317,7 @@ We took an iterative approach to model building by starting with something very 
 \
 
 
-### Proposed Models:
+## Proposed Models:
 
 \
 (1) $$ ln(Gross) = \beta_0 + \beta_1 * PG13 $$
@@ -344,7 +350,7 @@ $$+ \beta_4 * ln(Budget) + \beta_5 * PG13 * ln(Budget) $$
 The fifth and final model (5) builds on all of the models before it. The terms $\beta_0$, $\beta_1$, $\beta_2$, and $\beta_3$ have identical meanings to model (3). $\beta_4$ now represents the relationship between percentage increases in *budget* and percentage increases in *gross revenue*. The new term $\beta_5$ is an interaction term between *MPAA rating* and *budget*. Having an interaction term allows *budget* to impact predictions for *PG-13* and *R* differently. The magnitude of $\beta_5$ shows if the percentage change in *gross revenue* per percentage increase in *budget* is different for a *PG-13* movie than it is for an *R* movie.
 
 
-## 4. A Results Section
+# Results
 
 ```{r create stargazer, results = "asis"}
 stargazer(
@@ -399,37 +405,40 @@ m5b5 = round(log_log_pct_change(summary(model_5)$coefficients[6], 10), digits = 
 
 > Movies rated PG-13 are expected to generate `r m5b5`% more gross revenue than movies rated R if the budget is increased by 10%.
 
-## 5. Limitations of your Model 
+# Limitations of your Model 
 
-### 5a. Statistical limitations of your model
+## Statistical limitations of your model
 
-IID Concerns: 
-Movie data stretches over a 40 year period. We have to account for the impacts of inflation. We adjusted our models to account for inflation.
-Sequels and movies with common themes are not independent of each other. We did not take action to adjust for this. Clustering by genre.
-Clustering by year.
+**Inflation**
+
+We were initially concerned with our data not being identically distributed because the movies range over 40 years. The cumulative price increase from 1980 to 2020 was 214%. This change undoubtedly affects our outcome variable, gross revenue. We used the consumer price index (CPI) to calculate an inflation adjustment for gross revenue and the budget. Accounting for inflation allows us to level the playing field for movies produced across the time span.
+
+**Common Themes**
+
+Sequels and movies with common themes are not independent of each other. The success of one Star Wars movie directly impacts the success of another one. Specific movie themes and genres can also generate more attention at times. We did not take action to adjust for this. In future modeling, we can look at clustering by genre, year, and movie theme.
+
+**Best Linear Predictor**
+
+We ensured that there were not any concerns with co-linearity and non-finite variance within our data modeling. Do we need to elaborate on this? According to guidelines, we only need to highlight assumptions that pose problems for analysis.
 
 
-Unique BLP Concerns:
-No perfect co-linearity
+## Structural limitations of your model
 
-Non-infinite variance:
-No concern
+While our model accounts for many important variables of interest, there are other factors that could have an impact on our final model. We will discuss how omitted variables might affect each of our explanatory variables and what steps could resolve any omitted variable bias.
 
-As a team, evaluate all of the large sample model assumptions. However, you do not necessarily want to discuss every assumption in your report. Instead, highlight any assumption that might pose significant problems for your analysis. For any violations that you identify, describe the statistical consequences. If you are able to identify any strategies to mitigate the consequences, explain these strategies. 
+**Production Company**
 
-Note that you may need to change your model specifications in response to violations of the large sample model. 
+Different movie production companies have their niche within the Hollywood community. Certain companies will draw a strict line on violent, sexual, and other explicit content in their films. Those factors play a large role in MPAA rating. For example, Pixar Animation Studios, a subsidiary of Walt Disney  Studios, consistently produces high quality movies with a G or PG rating. While initially aimed for an adolescent population, the movies have gained success among all age groups and generated revenue reaching 1 billion dollars. Well known production companies with specific standards for content will likely still make movies with a high gross revenue. Additionally, movie critics might be partial to certain companies. Therefore, we expect the production company to bias the MPAA rating and quality score away from zero. We would need to find quality data on production companies to resolve this issue.
 
-### 5b. Structural limitations of your model
+**Popular Actors**
 
-Production company - positive bias away from zero for production companies. Certain companies won't make movies with explicit content (Pixar)
-Key actors and actresses - positive bias away from zero for popular actors
-Genre - certain genres will have more viewers.
+There are a lot of similarities between the argument for production company and for popular actors. Actors can have the same standards for content. Additionally, actors gain cult-like followings among the public. People will insist on watching all Matthew McConaughey or Julia Roberts movies regardless of the quality or content. Both known factors will influence the bias for MPAA rating and quality score away from zero. We would need to investigate actor popularity to resolve thsi bias.
 
-Collect data on quality of production companies, actors/actresses, most popular genres etc.
+**Movie Genre**
 
-What are the most important *omitted variables* that you were not able to measure and include in your analysis? For each variable you name, you should *reason about the direction of bias* caused by omitting this variable and whether the omission of this variable calls into question the core results you are reporting. What data could you collect that would resolve any omitted variables bias? 
+Genre of movie often affects the MPAA rating. An action movie will have more violence, and a comedy will likely have more explicit language. The genre will impact movie quality and viewership because people gravitate to certain genres. The bias impact is up for debate and not necessarily clear. While certain genres will drive up the MPAA rating, others will drive it down. We need more information on popularity of genres to see its impact on movie scores.
 
-## 6. Conclusion - Fidelia
+# Conclusion - Fidelia
 
 Make sure that you end your report with a discussion that distills key insights from your estimates and addresses your research question.
 
