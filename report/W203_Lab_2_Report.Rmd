@@ -410,36 +410,42 @@ m5b5 = round(log_log_pct_change(summary(model_5)$coefficients[6], 10), digits = 
 
 **Inflation**
 
-Initially, we were concerned that our data was not identically distributed because the movies range over 40 years. The cumulative price increase from 1980 to 2020 was 214%. This change undoubtedly affects our outcome variable, gross revenue. We used the consumer price index (CPI) to calculate an inflation adjustment for gross revenue and the budget. Accounting for inflation allows us to level the playing field for movies produced across the time span.
+> Initially, we were concerned that our data was not identically distributed because the movies range over 40 years. The cumulative price increase from 1980 to 2020 was 214%. This change undoubtedly affects our outcome variable, gross revenue. We used the consumer price index (CPI) to calculate an inflation adjustment for gross revenue and the budget. Accounting for inflation allows us to level the playing field for movies produced across the time span.
 
 **Common Themes**
 
-Sequels and movies with common themes are not independent of each other. The success of one Star Wars movie directly impacts the success of another one. Specific movie themes and genres can also generate more attention at times. We did not take action to adjust for this. In future modeling, we can look at clustering by genre, year, and movie theme.
+> Sequels and movies with common themes are not independent of each other. The success of one Star Wars movie directly impacts the success of another one. Specific movie themes and genres can also generate more attention at times. We did not take action to adjust for this. In future modeling, we can look at clustering by genre, year, and movie theme.
 
 **Best Linear Predictor**
 
-We ensured that there were no concerns with co-linearity and non-finite variance within our data modeling. Do we need to elaborate on this? According to guidelines, we only need to highlight assumptions that pose problems for analysis.
+> We ensured that there were no concerns with co-linearity and non-finite variance within our data modeling. Do we need to elaborate on this? According to guidelines, we only need to highlight assumptions that pose problems for analysis.
 
 
 ## Structural limitations of your model
 
-While our model accounts for many important variables of interest, other factors could impact our final model. We will discuss how omitted variables might affect each of our explanatory variables and what steps could resolve any omitted variable bias.
+> While our model accounts for many important variables of interest, other factors could impact our final model. We will discuss how omitted variables might affect each of our explanatory variables and what steps could resolve any omitted variable bias.
 
 **Production Company**
 
-Different movie production companies have their niche within the Hollywood community. Certain companies will draw a strict line on violent, sexual, and other explicit content in their films. Those factors play a large role in MPAA rating. For example, Pixar Animation Studios, a subsidiary of Walt Disney  Studios, consistently produces high-quality movies with a G or PG rating. While initially aimed for an adolescent population, the movies have gained success among all age groups and generated revenue reaching 1 billion dollars. Well-known production companies with specific standards for content will likely still make movies with high gross revenue.
+> Different movie production companies have their niche within the Hollywood community. Certain companies will draw a strict line on violent, sexual, and other explicit content in their films. Those factors play a large role in MPAA rating. For example, Pixar Animation Studios, a subsidiary of Walt Disney  Studios, consistently produces high-quality movies with a G or PG rating. While initially aimed for an adolescent population, the movies have gained success among all age groups and generated revenue reaching 1 billion dollars. Well-known production companies with specific standards for content will likely still make movies with high gross revenue.
 Additionally, movie critics might be partial to certain companies. Therefore, we expect the production company to bias the MPAA rating and quality score away from zero. We would need to find quality data on production companies to resolve this issue.
 
 **Popular Actors**
 
-There are a lot of similarities between the argument for the production company and famous actors. Actors can have the same standards for content. Additionally, actors gain cult-like followings among the public. People will insist on watching all Matthew McConaughey or Julia Roberts movies regardless of the quality or content. Both known factors will influence the bias for MPAA rating and quality score away from zero. We would need to investigate actor popularity to resolve this bias.
+> There are a lot of similarities between the argument for the production company and famous actors. Actors can have the same standards for content. Additionally, actors gain cult-like followings among the public. People will insist on watching all Matthew McConaughey or Julia Roberts movies regardless of the quality or content. Both known factors will influence the bias for MPAA rating and quality score away from zero. We would need to investigate actor popularity to resolve this bias.
 
 **Movie Genre**
 
-The genre of the movie often affects the MPAA rating. An action movie will have more violence, and a comedy will likely have more explicit language. The genre will impact movie quality and viewership because people gravitate to certain genres. The bias impact is up for debate and not necessarily clear. While certain genres will drive up the MPAA rating, others will drive it down. We need more information on the popularity of genres to see their impact on movie scores.
+> The genre of the movie often affects the MPAA rating. An action movie will have more violence, and a comedy will likely have more explicit language. The genre will impact movie quality and viewership because people gravitate to certain genres. The bias impact is up for debate and not necessarily clear. While certain genres will drive up the MPAA rating, others will drive it down. We need more information on the popularity of genres to see their impact on movie scores.
 
 # Conclusion - Fidelia
 
 Make sure that you end your report with a discussion that distills key insights from your estimates and addresses your research question.
 
-For this research study, we expected to show that both MPAA rating and movie quality impact the film's gross revenue. In particular, we wanted to focus on how much more revenue should a movie studio expect to make on a film that gets a PG-13 rating instead of an R rating, holding other factors constant.
+> For this research study, we expected to show that both MPAA rating and movie quality impact the film's gross revenue. In particular, we wanted to focus on how much more revenue a movie studio expects to make on a film that gets a PG-13 rating instead of an R rating, holding other factors constant. We did this by creating a model that does the following: measures the effect of changing the MPAA rating on the gross revenue of the movie, the effect of a film's IMDb score on gross revenue, the effect of the interaction of score and rating on gross revenue, and the effect of on gross revenue. The combination of all these effects proved to be the most effective based on the adjusted R-squared score and because of its best-quality predictions.
+
+> Based on the findings of the results table above, we can see how our primary variable of interest, rating of PG-13, is expected to generate less revenue than movies rated R for every 1 point increase in the score (which is our proxy for movie quality). We can also note how movies rated PG-13 are likely to generate a significantly lower percentage of gross revenue (91.24% lower) than a movie rated R. These results are surprising because we expected that changing the rating from R to PG-13 would increase revenue since a larger audience can watch the latter than the former. It's also interesting to note that even if there is an increase in the rating of a PG13 movie, it is still expected to generate less revenue than a rated-R movie with a similar rise in rating.
+
+> In general, we see how an increase in the score of a movie drastically increases how much gross revenue a movie generates (52.02%). There is also a positive relationship between increasing budget to generate more revenue but only by 7.69%. Therefore, we can conclude that improving the quality of the movie (score) increases the gross revenue generated, but changing the rating from PG-13 to R does not decrease revenue as we thought it would.
+
+If we stated earlier that we're using runtime as a proxy for movie quality, is there a reason it's not included in any of the models?
