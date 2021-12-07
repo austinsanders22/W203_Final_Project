@@ -201,7 +201,7 @@ grid.arrange(gross_histogram, log_gross_histogram,
 
 ```
 
->   Analysis on each of the budget and gross variables.
+>   Looking at the adj_budget vs. count and adj_gross vs. count graphs, we can see how there is a significant skew towards the left. Based on our EDA, log transformations of both the gross revenue (`gross`) and `budget` variables seemed helpful to produce a better-fitting linear model. This is because of the skewed nature of the data where both the financial variables have most data points toward zero with some extreme outliers (movies that generated a very large revenue). 
 
 ```{r - EDA: Check other explanatory variables, warning=FALSE}
 # CHECK OTHER EXPLANATORY VARIABLES
@@ -223,7 +223,7 @@ year_histogram <- df %>%
 
 votes_histogram <- df %>%
   ggplot(aes(votes)) +
-  geom_histogram(bins=30)
+  geom_histogram(bins=10)
 
 log_votes_histogram <- df %>%
   ggplot(aes(log(votes))) +
@@ -239,9 +239,7 @@ grid.arrange(ratings_distribution_histogram, score_histogram,
              nrow = 3, ncol = 2, top = "Explanatory Variable Distributions")
 ```
 
->   Analysis on each of the six graphs.
-
->   Based on our EDA, log transformations of both the gross revenue (`gross`) and `budget` variables seemed helpful to produce a better-fitting linear model. This is because of the skewed nature of the data where both the financial variables have most data points toward zero with some extreme outliers (movies that generated a very large revenue). Other numeric variables did not seem to require any transformations because the distribution seemed symmetrical enough.
+>   Looking at the ratings_distribution graph after EDA, we can see how the dataset contains at least 1,000 more rated R movies than PG-13 movies. This could potentially affect our training/testing sets and results because we have more R data movies to work with rather than PG-13 but should still be appropriate to answer our research question. For the second graph of score vs. count, we see a relatively normal distribution that is slightly off-centered to the right with a peak around 6.25. This bell curve is expected because the ratings are scored from 0-10 and it is expected that the peak will be at the average rating (at around 5). The votes vs. count graph has a left skew with a heavy tail near 0. This is due to most of the movies in the dataset not having more than a couple thousand or tens of thousands of reviews. This data is not as visually intuitive, so by taking the log(votes), we can see a much cleaner normal distrbution with an off-center to the right once again. The runtime vs. count graph also has a normal distribution but centered to the left at about 100 minutes, meaning most of the movies in the dataset don't run longer than an hour and a half to two hours. For the final graph, we see a relatively even distribution of the number of movies released each year, except during 1980-1990 where fewer movies were released in the dataset than in 2000 or 2010. Overall, the visualizations of the histograms from the data seem to follow our expectations. The other numeric variables (except for gross revenue (`gross`) and `budget`) did not seem to require any transformations because the distribution seemed symmetrical enough.
 
 ```{r - Evaluate numeric variables for perfect collinearity, message = FALSE, warning = FALSE, error = FALSE}
 
@@ -441,6 +439,8 @@ Genre of movie often affects the MPAA rating. An action movie will have more vio
 # Conclusion - Fidelia
 
 Make sure that you end your report with a discussion that distills key insights from your estimates and addresses your research question.
+
+For this research study, we 
 
 
 
