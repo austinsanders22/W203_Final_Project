@@ -29,12 +29,13 @@ library(hash)
 library(caTools)
 library(GGally)
 library(ggpubr)
+library(kableExtra)
 
-# data <- read.csv(file = "../data/movies.csv")
-# cpi <- read.csv(file = "../data/CPI_by_Year.csv")
+data <- read.csv(file = "../data/movies.csv")
+cpi <- read.csv(file = "../data/CPI_by_Year.csv")
 
-data <- read.csv(file = "movies.csv")
-cpi <- read.csv(file = "CPI_by_Year.csv")
+#data <- read.csv(file = "movies.csv")
+#cpi <- read.csv(file = "CPI_by_Year.csv")
 ```
 
 # Introduction
@@ -351,7 +352,7 @@ $$+ \beta_4 * ln(Budget) + \beta_5 * PG13 * ln(Budget) $$
 
 # Results
 
-## Model Output
+## Model Comparison
 
 ```{r create stargazer, results = "asis"}
 stargazer(
@@ -367,50 +368,52 @@ stargazer(
 )
 ```
 
-> Of all models considered, our team determined that model (5) was the most effective. It produces the best-quality predictions of all models, as shown by the adjusted R-squared score. It also captures the all of the effects that any of the models flagged as being significant. The one term that is not significant in this model is the interaction term between PG-13 and score, with a standard error that overlaps zero. A closer look at each of the model coefficients and how they can be interpreted:
+> Of all models considered, our team determined that model (5) was the most effective. It produces the best-quality predictions of all models, as shown by the adjusted R-squared score. It also captures the all of the effects that any of the models flagged as being significant. The one term that is not significant in this model is the interaction term between PG-13 and score, with a standard error that overlaps zero. Model (2) adhered most strictly to the causal theory we hoped to advance, but the vastly superior performance of model (5) could not be ignored. We performed an F-test on these models and it reinforced our decision to reject the null (simple) model (2) in favor of the fuller model (5).
 
-```{r model 5 Beta 0 interpretation}
-m5b0 = round(exp(summary(model_5)$coefficients[1]), digits = 2)
+```{r F-test}
+anova(model_2, model_5, test='F')
 ```
 
-> $\beta_0$ - As a baseline, movies rated *R* with a *budget* of 0 and an *IMDb score* of 0 are expected to generate $`r format(m5b0, nsmall = 2)` in gross revenue.
+## Model Interpretation
 
-```{r model 5 Beta 1 interpretation}
-m5b1 = round(level_to_log(summary(model_5)$coefficients[2]), digits = 2)
+```{r extra betas from model}
+m5b0 = round(summary(model_5)$coefficients[1], digits = 3)
+m5b1 = round(summary(model_5)$coefficients[2], digits = 3)
+m5b2 = round(summary(model_5)$coefficients[3], digits = 3)
+m5b3 = round(summary(model_5)$coefficients[5], digits = 3)
+m5b4 = round(summary(model_5)$coefficients[4], digits = 3)
+m5b5 = round(summary(model_5)$coefficients[6], digits = 3)
+m5b0_i = round(exp(summary(model_5)$coefficients[1]), digits = 3)
+m5b1_i = round(exp(m5b0+m5b1), digits = 3)
+m5b2_i = round(level_to_log(m5b2), digits = 3)
+m5b3_i = round(level_to_log(m5b3), digits = 3)
+m5b4_i = round(log_log_pct_change(m5b4,10), digits = 3)
+m5b5_i = round(log_log_pct_change((m5b5+m5b4),10), digits = 3)
 ```
 
-> $\beta_1$ - The baseline for *PG-13* movies with a *budget* of 0 and an *IMDb score* of 0 is even lower, as they are expected to generate 
+After running our linear regressions and calculating the beta coefficients, our final model (5) is set:
+$$ ln(Gross) = `r m5b0` `r m5b1` * PG13 + `r m5b2` * Score `r m5b3` * PG13 * Score$$
+$$ + `r m5b4` * ln(Budget) + `r m5b5` * PG13 * ln(Budget) $$
 
-> Assuming this baseline, movies rated PG-13 are likely to generate `r -m5b1`% less gross revenue than a movie rated R.
+A closer look at each of the model coefficients and how they can be interpreted:
 
-```{r model 5 Beta 2 interpretation}
-m5b2 = round(level_to_log(summary(model_5)$coefficients[3]), digits = 2)
-```
 
-> Movies are expected to generate `r m5b2`% more gross revenue per 1 point increase in score.
+> $\beta_0 = `r m5b0`$ : As a baseline, movies rated *R* with a *budget* of 0 and an *IMDb score* of 0 are expected to generate #`r format(m5b0_i, nsmall = 2)` in gross revenue.
 
-```{r model 5 Beta 3 interpretation}
-m5b3 = round(log_log_pct_change(summary(model_5)$coefficients[4], 10), digits = 2)
-```
+> $\beta_1  = `r m5b1`$ : The baseline for *PG-13* movies with a *budget* of 0 and an *IMDb score* of 0 is lower than movies with an *R* rating. This puts the baseline prediction for *gross revenue* for a PG-13 movie at `r format(m5b1_i, nsmall = 2)` Although both $\beta_0$ and $beta_1$ are statistically significant, they are of little practical significance. We are not interested in movies with a *budget* of 0 or an *IMDb score* of 0. The other coefficients tell a more important story.
 
-> Movies are expected to generate `r m5b3`% more gross revenue if the budget is increased by 10%.
+> $\beta_2  = `r m5b2`$ : For every one point increase in *IMDb Score* our *gross revenue* prediction increases by `r 100 * m5b2`%. This is both statistically and practically significant. It supports our prior assumption that *movie quality* as measured by *IMDb score* is an important factor in the success of a movie as measured by *gross revenue*.
 
-```{r model 5 Beta 4 interpretation}
-m5b4 = round(level_to_log(summary(model_5)$coefficients[5]), digits = 2)
-```
+> $\beta_3  = `r m5b3`$ : This is the first interaction term in our model, and it serves to illustrate the difference in impact that increasing *IMDb score* has on *PG-13* movies versus the *R* movie base case. For a PG-13 movie we combine the effects of $\beta_2$ and $\beta_3$ so for each one point increase in *IMDb* rating we expect to see a `r (m5b2 + m5b3) * 100 `% increase in *gross revenue*. This is the only coeeficient in our model that is not statistically significant, so it is not particularly valuable in drawing practical conclusions. It suggests that *PG-13* movies benefit less per point increase in *IMDb score*, but the relationship is small and the standard error overlaps zero.
 
-> Movies rated PG-13 are expected to generate `r -m5b4`% less gross revenue than movies rated R per 1 point increase in score. However, this is the only coefficient that is not statistically significant as the p-value is high and the 95% confidence interval (+/- 2 standard deviations) contains 0.
+> $beta_4 = `r m5b4`$ : Because *budget* proved to be a strong predictor of *gross revenue*, this term is especially important. Due to both variables having undergone a log transformation, the interpretation is less straightforward. For each 10% increase in *budget* we expect to see a `r m5b4`% increase in *gross revenue*. This term is both statistically and practically signficant. It shows that increasing the *budget* is not always profitable in-and-of-itself. The excess spending may only be worthwhile if it also increases the *movie quality* in a meaningful way. This is a question that could warrant future research.
 
-```{r model 5 Beta 5 interpretation}
-m5b5 = round(log_log_pct_change(summary(model_5)$coefficients[6], 10), digits = 2)
-```
-
-> Movies rated PG-13 are expected to generate `r m5b5`% more gross revenue than movies rated R if the budget is increased by 10%.
+> $beta_5 = `r m5b5`$ : The final coefficient to evaluate is another interaction term. It serves to illustrate the difference in impact that increasing *budget* has on *PG-13* movies versus the *R* movie base case. This is another case where log transformations have been applied to both *gross revenue* and *budget*, making the coefficient less straightforward to interpret. For each 10% increase in *budget* we expect to see a `r m5b5`% increase in *gross revenue*. This term is both statistically and practically signficant. It suggests that increasing the *budget* of a *PG-13* movie has a greater positive effect on *gross revenue* than it does for an *R* movie. This helps support our hypothesis that the movie will perform better if we change from an *R* rating to a *PG-13* rating.
 
 
 ## Model Predictions
 
-> Given the constraints of the movie as input parameters, model (5) was used to estimate the possible revenue of the Acme Studios superhero movie. The movie's budget is set at $50,000,000.00 and the MPAA rating can be either R or PG-13. Assuming that the IMDb score (or perceived quality) may vary, the estimated evenue was predicted as the scores varied. The figure below shows the estimated output:
+> Given the constraints of the movie as input parameters, model (5) was used to estimate the possible revenue of the Acme Studios superhero movie. The movie's budget is set at $50,000,000.00 and the MPAA rating can be either R or PG-13. Assuming that the IMDb score (or perceived quality) may vary, the estimated gross revenue predicted by the model also varies. The figure below shows the estimated gross revenue for different IMDb scores:
 
 ```{r model 5 Prediction, message=FALSE, warning=FALSE}
 
@@ -419,6 +422,7 @@ m5b5 = round(log_log_pct_change(summary(model_5)$coefficients[6], 10), digits = 
 BUDGET = 50000000
 
 score_range = seq(0, 10, by = 0.001)
+score_str = toString(round(mean(df$score),3))
 
 df_predict_r = data.frame(
   score = score_range,
@@ -438,28 +442,39 @@ df_predict_pg13 = data.frame(
 df_predict_pg13$log_gross = predict(model_5, df_predict_pg13)
 df_predict_pg13$gross = exp(df_predict_pg13$log_gross)
 
+r_prediction = df_predict_r[df_predict_r$score == score_str, "gross"]
+pg13_prediction = df_predict_pg13[df_predict_pg13$score == score_str, "gross"]
+pg13_improve_est = pg13_prediction - r_prediction
+
 gross_plot <- ggplot() +
       geom_point(data=df_predict_r, aes(x=score, y=gross, colour="darkblue")) + 
       geom_point(data=df_predict_pg13, aes(x=score, y=gross, colour="red")) + 
-      ggtitle("Estimated Revenue vs Score") +
+      ggtitle("Estimated Revenue vs Score\n") +
       xlab("Score") + ylab("Revenue (USD)") +
       theme(plot.title = element_text(hjust = 0.5)) +
       scale_color_hue(labels = c("R", "PG13")) +
-      theme(legend.position = c(0.5, 0.6),
-            legend.title = element_blank())
+      theme(legend.position = c(0.2, 0.85),
+            legend.title = element_blank()) +
+      annotate(geom="vline", xintercept = mean(df$score), y = (max(df_predict_pg13$gross)/2), linetype="dashed") +
+      annotate(geom="text", x = mean(df$score), y = (max(df_predict_pg13$gross)), angle=90, vjust=-.5, hjust=1, label="Sample Mean IMDb Score") +
+      annotate(geom="hline", yintercept = BUDGET, x = 0, linetype="dashed", color="darkgreen") +
+      annotate(geom="text", x = 0, y = BUDGET,  vjust=-.5, hjust=0, label="Budget", color="darkgreen") 
+
 
 gross_diff_plot <- ggplot() +
       geom_smooth(aes(x=df_predict_pg13$score, y=df_predict_pg13$gross - df_predict_r$gross), fill="darkgreen",
         colour="darkgreen", size=1) +
-      ggtitle("Estimated Revenue Gain\nfor PG-13 Film") +
+      ggtitle("Estimated Revenue Gain for\nchanging R film to PG-13") +
       xlab("Score") + ylab("PG-13 Revenue Gain (USD)") +
-      theme(plot.title = element_text(hjust = 0.5))
+      theme(plot.title = element_text(hjust = 0.5)) +
+      annotate(geom="vline", xintercept = mean(df$score), y = ((max(df_predict_pg13$gross)-max(df_predict_r$gross))/2), linetype="dashed") +
+      annotate(geom="text", x = mean(df$score), y = (max(df_predict_pg13$gross)-max(df_predict_r$gross)), angle=90, vjust=-.5, hjust=1, label="Sample Mean IMDb Score")
 
 ggarrange(gross_plot, gross_diff_plot,
                         nrow = 1, ncol = 2)
 ```
 
-> According to the model, a PG-13 movie with this budget is expected to generate more revenue than an R movie. As the IMDb score (percevied quality) increases, the estimated gain in revenue increases in a logarithmic rate. If this model properly predicts the revenue, then it would suggest that there is much more to gain by allowing the movie to be rated PG-13.
+> According to the model, a PG-13 movie with this budget is expected to generate more revenue than an R movie. As the IMDb score (perceived quality) increases, the estimated gain in revenue increases at an exponential rate. If this model properly predicts the revenue, then it would suggest that there is much more to gain by allowing the movie to be rated PG-13. The horizontal dotted line on the left plot represents our movie's financial break-even point and shows that a PG-13 movie is expected to break-even at a lower IMDb score. Using the sample mean (`r score_str`) as an estimate for IMDb score (represented by the vertical dotted line on both plots), and holding all other variables constant, our model estimates the gross revenue for the movie to be $`r format(r_prediction,big.mark=",", trim=TRUE)` if rated R versus $`r format(pg13_prediction,big.mark=",", trim=TRUE)` if rated PG-13 (an improvement of $`r format(pg13_improve_est,big.mark=",", trim=TRUE)`). The predicted revenue for an R rating is dangerously close to our break-even point, whereas the gross revenue prediction for a PG-13 rating suggests a sizable profit margin.
 
 
 # Limitations of your Model 
