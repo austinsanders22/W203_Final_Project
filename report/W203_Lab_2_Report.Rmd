@@ -12,7 +12,7 @@ output:
 \newpage
 
 ```{r - Setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(echo = FALSE,fig.align="center")
 
 MIN_REVENUE = 1
 MIN_BUDGET = 1
@@ -34,11 +34,11 @@ library(GGally)
 library(ggpubr)
 library(kableExtra)
 
-#data <- read.csv(file = "../data/movies.csv")
-#cpi <- read.csv(file = "../data/CPI_by_Year.csv")
+data <- read.csv(file = "../data/movies.csv")
+cpi <- read.csv(file = "../data/CPI_by_Year.csv")
 
-data <- read.csv(file = "movies.csv")
-cpi <- read.csv(file = "CPI_by_Year.csv")
+#data <- read.csv(file = "movies.csv")
+#cpi <- read.csv(file = "CPI_by_Year.csv")
 ```
 
 # Introduction
@@ -54,11 +54,9 @@ cpi <- read.csv(file = "CPI_by_Year.csv")
 >   Our research question intends to measure the impact of *MPAA Rating* and *Movie Quality* on the *Gross Revenue* that it will generate. Given other available, quantifiable factors like the *Budget*, *Genre*, and *Runtime*, this study also intended to investigate if they affect the *MPAA Rating* and/or *Movie Quality* which in turn affect the *Gross Revenue*. 
 
 ## Causal Theory
-
 ![](causal_theory.png){width=60%}
 
-
->   Our research question seeks to measure the impact of the *MPAA Rating* (more specifically, PG-13 versus R) on the *Gross box office revenue*. A movie typically receives an R rating by the MPAA for some combination of violent content, adult content, explicit language, and drug use. In addition to these factors contributing to the MPAA rating, they also contribute to the quality of the movie. We expect to show that both MPAA rating and movie quality impact the film's gross revenue. By adjusting the movie's content to secure the desired rating, we may also affect the quality of the movie. Therefore, this study also explored models that include a proxy for movie quality to attempt to minimize omitted variable bias.
+>   Our research question seeks to measure the impact of the *MPAA Rating* (more specifically, PG-13 versus R) on the *Gross box office revenue*. A movie typically receives an R rating by the MPAA for some combination of violent content, adult content, explicit language, and drug use. In addition to these factors contributing to the MPAA rating, they also contribute to the quality of the movie. We expect to show that both MPAA rating and movie quality impact the film's gross revenue. Intuitively, and based on our prior knowledge, we expect to show that *PG-13* movies earn a higher *gross revenue* than *R* movies holding all other variables constant. By adjusting the movie's content to secure the desired rating, we may also affect the quality of the movie. Therefore, this study also explored models that include a proxy for movie quality to attempt to minimize omitted variable bias.
 
 # Research Design and Data
 
@@ -285,7 +283,7 @@ ggarrange(p1,p2,nrow = 1, ncol = 2)
 > Since the logarithm of *budget* and the logaraithm of *gross revenue* seemed to have correlation of greater than 0.5 while *score* and the logarithm of 
 *budget* seemed to have a correlation just less than 0.5, these findings were explored in the plot above (colored by rating). It seems that there might be some linear relationship between the pairs. The effect of *budget* on *gross revenue* was also explored in the modeling process as a result of this finding. Seeing how the R rated and PG-13 data points are intertwined in both the plots for *score* and the logarithm of *budget* versus the logarithm of *gross*, a statistical model would help differentiate the effect of the *rating* on the *gross revenue*.
 
-# Statistical Model - rearranged, move some parts to results
+# Statistical Model
 
 ## A Model Building Process
 
@@ -425,7 +423,7 @@ $$ + `r m5b4` * ln(Budget) + `r m5b5` * PG13 * ln(Budget) $$
 A closer look at each of the model coefficients and how they can be interpreted:
 
 
-> $\beta_0 = `r m5b0`$ : As a baseline, movies rated *R* with a *budget* of 0 and an *IMDb score* of 0 are expected to generate `r format(m5b0_i, nsmall = 2)` in gross revenue.
+> $\beta_0 = `r m5b0`$ : As a baseline, movies rated *R* with a *budget* of 0 and an *IMDb score* of 0 are expected to generate $`r format(round(m5b0_i,2), nsmall = 2)` in gross revenue.
 
 > $\beta_1  = `r m5b1`$ : The baseline for *PG-13* movies with a *budget* of 0 and an *IMDb score* of 0 is lower than movies with an *R* rating. This puts the baseline prediction for *gross revenue* for a PG-13 movie to generate `r format(abs(m5b1_i), nsmall = 2)`% less revenue than an R-rated movie. Although both $\beta_0$ and $\beta_1$ are statistically significant, they are of little practical significance. We are not interested in movies with a *budget* of 0 or an *IMDb score* of 0. The other coefficients tell a more important story.
 
@@ -433,9 +431,9 @@ A closer look at each of the model coefficients and how they can be interpreted:
 
 > $\beta_3  = `r m5b3`$ : This is the first interaction term in our model, and it serves to illustrate the difference in impact that increasing *IMDb score* has on *PG-13* movies versus the *R* movie base case. For a PG-13 movie we combine the effects of $\beta_2$ and $\beta_3$ so for each one point increase in *IMDb* rating we expect to see a `r (m5b2 + m5b3) * 100 `% increase in *gross revenue*. This is the only coefficient in our model that is not statistically significant, so it is not particularly valuable in drawing practical conclusions. It suggests that *PG-13* movies benefit less per point increase in *IMDb score*, but the relationship is small and the standard error overlaps zero.
 
-> $\beta_4 = `r m5b4`$ : Because *budget* proved to be a strong predictor of *gross revenue*, this term is especially important. Due to both variables having undergone a log transformation, the interpretation is less straightforward. For each 10% increase in *budget* we expect to see a `r m5b4`% increase in *gross revenue*. This term is both statistically and practically signficant. It shows that increasing the *budget* is not always profitable in-and-of-itself. The excess spending may only be worthwhile if it also increases the *movie quality* in a meaningful way. This is a question that could warrant future research.
+> $\beta_4 = `r m5b4`$ : Because *budget* proved to be a strong predictor of *gross revenue*, this term is especially important. Due to both variables having undergone a log transformation, the interpretation is less straightforward. For each 10% increase in *budget* we expect to see a `r m5b4_i`% increase in *gross revenue* for *R* movies. This term is both statistically and practically signficant. It shows that increasing the *budget* is not always profitable in-and-of-itself. The excess spending may only be worthwhile if it also increases the *movie quality* in a meaningful way. This is a question that could warrant future research.
 
-> $\beta_5 = `r m5b5`$ : The final coefficient to evaluate is another interaction term. It serves to illustrate the difference in impact that increasing *budget* has on *PG-13* movies versus the *R* movie base case. This is another case where log transformations have been applied to both *gross revenue* and *budget*, making the coefficient less straightforward to interpret. For each 10% increase in *budget* we expect to see a `r m5b5`% increase in *gross revenue*. This term is both statistically and practically signficant. It suggests that increasing the *budget* of a *PG-13* movie has a greater positive effect on *gross revenue* than it does for an *R* movie. This helps support our hypothesis that the movie will perform better if we change from an *R* rating to a *PG-13* rating.
+> $\beta_5 = `r m5b5`$ : The final coefficient to evaluate is another interaction term. It serves to illustrate the difference in impact that increasing *budget* has on *PG-13* movies versus the *R* movie base case. This is another case where log transformations have been applied to both *gross revenue* and *budget*, making the coefficient less straightforward to interpret. For each 10% increase in *budget* we expect to see a `r m5b5_i`% increase in *gross revenue* for *PG-13* movies. This term is both statistically and practically signficant. It suggests that increasing the *budget* of a *PG-13* movie has a greater positive effect on *gross revenue* than it does for an *R* movie. This helps support our hypothesis that the movie will perform better if we change from an *R* rating to a *PG-13* rating.
 
 
 ## Model Predictions
@@ -470,8 +468,8 @@ df_predict_pg13$log_gross = predict(model_5, df_predict_pg13)
 df_predict_pg13$gross = exp(df_predict_pg13$log_gross)
 
 r_prediction = df_predict_r[df_predict_r$score == score_str, "gross"]
-pg13_prediction = df_predict_pg13[df_predict_pg13$score == score_str, "gross"]
-pg13_improve_est = pg13_prediction - r_prediction
+pg13_prediction = round(df_predict_pg13[df_predict_pg13$score == score_str, "gross"],2)
+pg13_improve_est = round(pg13_prediction - r_prediction,2)
 
 gross_plot <- ggplot() +
       geom_point(data=df_predict_r, aes(x=score, y=gross, colour=COLOR_R)) + 
@@ -540,12 +538,12 @@ Additionally, movie critics might be partial to certain companies. Therefore, we
 
 # Conclusion
 
-> For this research study, we expected to show that both *MPAA rating* and movie quality impact the film's *gross revenue*. In particular, we wanted to focus on how much more revenue a movie studio expects to make on a film that gets a *PG-13* rating instead of an *R* rating, holding other factors constant. We did this by creating a model that does the following: measures the effect of changing the *MPAA rating* on the *gross revenue* of the movie, the effect of a film's *IMDb score* on *gross revenue*, the interaction of *MPAA rating/budget* on *gross revenue*, and the effect of *budget* on *gross revenue*. The combination of all these effects proved to be the most effective based on the adjusted R-squared score and because of its best-quality predictions. Using an F-test reinforced our decision to reject the null hypothesis (such as in model 2), in favor of model 5.
+> For this research study, we expected to show that both *MPAA rating* and movie quality impact the film's *gross revenue*. In particular, we wanted to focus on how much more revenue a movie studio expects to make on a film that gets a *PG-13* rating instead of an *R* rating, holding other factors constant. We did this by creating a model that does the following: measures the effect of changing the *MPAA rating* on the *gross revenue* of the movie, the effect of a film's *IMDb score* on *gross revenue*, the interaction of *MPAA rating/budget* on *gross revenue*, and the effect of *budget* on *gross revenue*. The combination of all these effects proved to be the most effective based on the adjusted R-squared score and because of its best-quality predictions. Using an F-test reinforced our decision to reject the null hypothesis (using the simple model (2), in favor of model (5).
 
-> According to Model (5), we can see how a *PG-13* film with a budget of $0 and an *IMDb score* of 0 is expected to make `r format(abs(m5b1_i), nsmall = 2)`% *less* *gross revenue* than a rated-*R* movie. However, when looking at the coefficient of the interaction term for *PG13* * *Budget*, we can see how $\beta_5$ is positive and statistically significant, which suggests that as the budget increases, the *PG-13* movies will generate more *gross revenue*. The negative coefficient might have mitigated this for *PG-13* * *IMDb score*, where, as the score increases, *PG-13* movies are expected to yield 4.51% less *gross revenue*. But it seems statistically insignificant because the p-value is not within the cut-off for *and* its 95% confidence interval (+/- 2 standard deviations) contains zero. 
+> According to model (5), we can see how a *PG-13* film with a budget of $0 and an *IMDb score* of 0 is expected to make `r format(abs(m5b1_i), nsmall = 2)`% *less* *gross revenue* than a rated-*R* movie. However, when looking at the coefficient of the interaction term for *PG13* * *Budget*, we can see how $\beta_5$ is positive and statistically significant, which suggests that as the budget increases, the *gross revenue* for *PG-13* movies will increase more rapidly than for *R* movies. The negative coefficient for *PG-13* * *score* ($\beta_3$) might have somewhat mitigated this because *PG-13* movies see less of an increase in *gross revenue* per one point increase in *IMDb score* than *R* movies, but the p-value for this term is not within the threshold for signifigance and its 95% confidence interval (+/- 2 standard deviations) contains zero.
 
-> Based on these results, our model seems to favor *R* movies with a lower *budget* but favors *PG-13* movies with a higher *budget* with an R-Squared value of 0.428.
+> Based on these results, our model seems to favor *R* movies with at lower *budgets* but favors *PG-13* movies with higher *budgets* if *IMDb score* is held constant. This tipping point for *budget* varies based on any particular *IMDb score*.
 
-> As a result, our study seems conclusive about the causal relationship between *rating* and *gross revenue* if the *budget* is constant at $50,000,000. We do not fail to detect a significant causal effect between these variables because we see a trend in the increase in *gross revenue* for changing the rating from *R* to *PG-13*, as shown above in our model prediction graphs. The predictive model showed how the predicted revenue for an *R* rated movie does not suggest a sizable profit margin compared to the predicted *gross revenue* of *PG-13*. The model estimates an improvement of over $40,000,000 if the rating is changed from *R* to *PG-13*. Regarding our original problem statement, we would suggest modifying the movie for a more family-friendly rating.
+> As a result, our study seems conclusive about the causal relationship between *rating* and *gross revenue* if the *budget* is constant at $50,000,000. Our results support a causal effect between these variables because we see a trend in the increase in *gross revenue* for changing the rating from *R* to *PG-13*, as shown above in our model prediction graphs, that aligns with our causal theory. The predictions from our chosen model suggested that the *gross revenue* for an *R* rated movie at our target *budget* would provide a narrow profit margin (`r round(((r_prediction - BUDGET)/r_prediction)*100,2)`%) compared to the predicted *gross revenue* if the movie was modified to be *PG-13*. The model estimates an improvement in *gross revenue* of $`r format(pg13_improve_est,big.mark=",", trim=TRUE)` from this *MPAA rating* change, which improves our expected profit margin to `r round(((pg13_prediction - BUDGET)/pg13_prediction)*100,2)`%. Regarding our original problem statement, our findings strongly suggest modifying the movie for a more family-friendly rating.
 
-> Given the limitations in our data, including the fact that it is not entirely IID and the subjective interpretation of what makes a movie "high" quality based on a good score, it is interesting to see our estimation models detect an effect for our variables of interest (*gross revenue*). Our theoretical causal model accurately captured the existing causal paths using F-tests and OLS regression under classical linear model assumptions to find an effect. For future refinement, perhaps we could work with a larger sample size (with movies before 1980) or further ensure that we have a truly random sample with equally distributed genres of movies and compare their models and R-squared values to see if there is a similar effect. 
+> Given the limitations in our data, including the fact that it is not entirely IID and the subjective interpretation of what makes a movie "high" quality based on a good score, it is interesting to see our estimation models detect an effect for our outcome variable of interest (*gross revenue*). Our theoretical causal model accurately captured the existing causal paths using F-tests and OLS regression under classical linear model assumptions to find an effect. For future refinement, perhaps we could work with a larger sample size (such as including movies from prior to 1980) or further ensure that we have a truly random sample with equally distributed genres of movies and compare their models and R-squared values to see if there is a similar effect.
