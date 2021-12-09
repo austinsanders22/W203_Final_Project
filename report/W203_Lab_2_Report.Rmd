@@ -12,7 +12,6 @@ output:
 \newpage
 
 ```{r - Setup, include=FALSE}
-knitr::purl("purl.Rmd")
 knitr::opts_chunk$set(echo = FALSE,fig.align="center")
 
 MIN_REVENUE = 1
@@ -35,11 +34,11 @@ library(GGally)
 library(ggpubr)
 library(kableExtra)
 
-#data <- read.csv(file = "../data/movies.csv")
-#cpi <- read.csv(file = "../data/CPI_by_Year.csv")
+data <- read.csv(file = "../data/movies.csv")
+cpi <- read.csv(file = "../data/CPI_by_Year.csv")
 
-data <- read.csv(file = "movies.csv")
-cpi <- read.csv(file = "CPI_by_Year.csv")
+#data <- read.csv(file = "movies.csv")
+#cpi <- read.csv(file = "CPI_by_Year.csv")
 ```
 
 # Introduction

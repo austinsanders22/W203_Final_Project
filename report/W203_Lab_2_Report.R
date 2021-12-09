@@ -22,11 +22,11 @@ library(GGally)
 library(ggpubr)
 library(kableExtra)
 
-#data <- read.csv(file = "../data/movies.csv")
-#cpi <- read.csv(file = "../data/CPI_by_Year.csv")
+data <- read.csv(file = "../data/movies.csv")
+cpi <- read.csv(file = "../data/CPI_by_Year.csv")
 
-data <- read.csv(file = "movies.csv")
-cpi <- read.csv(file = "CPI_by_Year.csv")
+#data <- read.csv(file = "movies.csv")
+#cpi <- read.csv(file = "CPI_by_Year.csv")
 
 
 ## ----Data Cleaning---------------------------------------------------------------------------------------------------
