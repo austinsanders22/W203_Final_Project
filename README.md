@@ -1,6 +1,8 @@
-# W203_Lab2_Hewitt_Lim_Nawar_Sanders
+# Statistics For Data Science Final Group Project
 
-To access the report, bot the RMD and PDF files are in the 'report' folder
+Link to full report - https://github.com/austinsanders22/W203_Final_Project/blob/main/report/W203_Lab_2_Report.pdf
+
+Both the RMD and PDF files are in the 'report' folder
 
 The data files used in the code and figure generation are in the 'data' folder
 
